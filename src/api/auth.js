@@ -1,12 +1,12 @@
 import api from "./api";
 
 export const loginUser = async (credentials) => {
-  const res = await api.post("/api/patient/login", credentials);
+  const res = await api.post("/.netlify/functions/patientLogin", credentials);
   return res.data;
 };
 
 export const registerUser = async (userData) => {
-  const res = await api.post("/api/patient/register", userData);
+  const res = await api.post("/.netlify/functions/patientRegister", userData);
   return res.data;
 };
 

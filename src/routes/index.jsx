@@ -17,7 +17,6 @@ import {
   hospitalNavigation,
   patientNavigation,
 } from "../utils/navigaion.js";
-import DoctorForm from "../pages/Hospital/Dashboard/DoctorForm.jsx";
 import DoctorsSection from "../pages/Hospital/Dashboard/DoctorSection.jsx";
 import ReportsSection from "../pages/Hospital/Dashboard/ReportSection.jsx";
 import ProfileSection from "../pages/Hospital/Dashboard/ProfileSection.jsx";
@@ -51,34 +50,31 @@ const router = createBrowserRouter([
   {
     path: "/patient/dashboard",
     element: (
-      // <PrivateRoute allowedRoles={["patient"]} redirectTo="/login/patient">
-      <Layout navigation={patientNavigation} name={patient}>
-        <PatientDashboard />
-      </Layout>
-
-      // </PrivateRoute>
+      <PrivateRoute allowedRoles={["patient"]} redirectTo="/login/patient">
+        <Layout navigation={patientNavigation} name={patient}>
+          <PatientDashboard />
+        </Layout>
+      </PrivateRoute>
     ),
   },
   {
     path: "/patient/report",
     element: (
-      // <PrivateRoute allowedRoles={["patient"]} redirectTo="/login/patient">
-      <Layout navigation={patientNavigation} name={patient}>
-        <MedicalHistory />
-      </Layout>
-
-      // </PrivateRoute>
+      <PrivateRoute allowedRoles={["patient"]} redirectTo="/login/patient">
+        <Layout navigation={patientNavigation} name={patient}>
+          <MedicalHistory />
+        </Layout>
+      </PrivateRoute>
     ),
   },
   {
     path: "/patient/appointment-booking",
     element: (
-      // <PrivateRoute allowedRoles={["patient"]} redirectTo="/login/patient">
-      <Layout navigation={patientNavigation} name={patient}>
-        <AppointmentBooking />
-      </Layout>
-
-      // </PrivateRoute>
+      <PrivateRoute allowedRoles={["patient"]} redirectTo="/login/patient">
+        <Layout navigation={patientNavigation} name={patient}>
+          <AppointmentBooking />
+        </Layout>
+      </PrivateRoute>
     ),
   },
 

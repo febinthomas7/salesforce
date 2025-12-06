@@ -4,13 +4,19 @@ import { useNavigate } from "react-router-dom";
 import { Eye, EyeClosed } from "lucide-react";
 
 export default function Login() {
-  const [eyePassword, setEyePassword] = useState(false);
+  const [loadingLogin, setLoadingLogin] = useState(false);
+  const [loadingSignup, setLoadingSignup] = useState(false);
+
+  const [eyeLogin, setEyeLogin] = useState(false);
+  const [eyeSignup, setEyeSignup] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
   const [message, setMessage] = useState({ text: "", type: "" });
   const navigate = useNavigate();
 
+  // SIGNUP HANDLER
   const handleSignup = async (e) => {
     e.preventDefault();
+    setLoadingSignup(true);
 
     const formData = new FormData(e.target);
     const userData = {
@@ -24,35 +30,38 @@ export default function Login() {
     try {
       const data = await registerUser(userData);
 
-      // console.log("Registration successful:", data);
-      // Registration successful
       if (data.status === true) {
         setMessage({
           text: "Registration successful! You can now log in.",
           type: "success",
         });
-        e.target.reset(); // Reset form fields
+
+        e.target.reset();
 
         setTimeout(() => {
-          setIsLogin(true); // Redirect to login
+          setIsLogin(true);
           setMessage({ text: "", type: "" });
-        }, 2000);
+        }, 1500);
       } else {
-        setMessage({ text: "Registration failed", type: "error" });
+        setMessage({
+          text: data.error[0].errorCode || "Registration failed",
+          type: "error",
+        });
       }
     } catch (error) {
-      console.error("Signup failed:", error);
-
-      // Axios errors can be in error.response.data
       setMessage({
-        text: error.response?.data?.error || "Registration failed",
+        text: "Registration failed",
         type: "error",
       });
+    } finally {
+      setLoadingSignup(false);
     }
   };
 
+  // LOGIN HANDLER
   const handleLogin = async (e) => {
     e.preventDefault();
+    setLoadingLogin(true);
 
     const formData = new FormData(e.target);
     const credentials = {
@@ -63,47 +72,48 @@ export default function Login() {
     try {
       const data = await loginUser(credentials);
       if (data.status === true) {
-        // Save JWT token in localStorage
         localStorage.setItem("token", data.token);
         localStorage.setItem("role", "patient");
-        // Optionally save patient info
         localStorage.setItem("patient", JSON.stringify(data.data));
 
         setMessage({ text: "Login successful!", type: "success" });
+
         e.target.reset();
 
-        // Redirect to dashboard
         setTimeout(() => {
-          navigate("/patient/dashboard"); // or wherever you want
-        }, 1000);
+          navigate("/patient/dashboard");
+        }, 800);
       } else {
-        setMessage({ text: "Invalid Credentials", type: "error" });
+        setMessage({
+          text: "Invalid Credentials",
+          type: "error",
+        });
       }
     } catch (error) {
-      console.error("Login failed:", error);
       setMessage({
-        text: error.response?.data?.error || "try again later",
+        text: "Invalid Credentials",
         type: "error",
       });
+    } finally {
+      setLoadingLogin(false);
     }
   };
+
   return (
     <div className="bg-gradient-to-r from-[#0b4f4a] via-[#1a756f] to-[#2a9b94] min-h-screen flex flex-col justify-center items-center p-4 text-black">
-      {/* --- LOGO MOVED HERE --- */}
-      <div className="flex justify-center mb-6 ">
+      <div className="flex justify-center mb-6">
         <img src="/home-logo.png" alt="App Logo" className="w-26 h-24" />
       </div>
-      {/* --- END OF LOGO SECTION --- */}
 
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 space-y-6">
-        {/* Tab Navigation */}
+        {/* Tabs */}
         <div className="flex border-b border-gray-200">
           <button
             onClick={() => {
               setIsLogin(true);
               setMessage({ text: "", type: "" });
             }}
-            className={`w-1/2 py-2 px-4 text-center font-semibold focus:outline-none transition-colors duration-200 border-b-2 ${
+            className={`w-1/2 py-2 px-4 text-center font-semibold transition-colors border-b-2 ${
               isLogin
                 ? "text-gray-700 border-[#6B9E99]"
                 : "text-gray-400 border-transparent hover:text-[#6B9E99]"
@@ -111,12 +121,13 @@ export default function Login() {
           >
             Login
           </button>
+
           <button
             onClick={() => {
               setIsLogin(false);
               setMessage({ text: "", type: "" });
             }}
-            className={`w-1/2 py-2 px-4 text-center font-semibold focus:outline-none transition-colors duration-200 border-b-2 ${
+            className={`w-1/2 py-2 px-4 text-center font-semibold transition-colors border-b-2 ${
               !isLogin
                 ? "text-gray-700 border-[#6B9E99]"
                 : "text-gray-400 border-transparent hover:text-[#6B9E99]"
@@ -126,60 +137,54 @@ export default function Login() {
           </button>
         </div>
 
-        {/* Conditional Rendering of Forms */}
+        {/* LOGIN FORM */}
         {isLogin ? (
-          // Login Form
           <div className="space-y-6">
             <h2 className="text-2xl font-bold text-gray-800 text-center">
               Login with Aadhaar
             </h2>
+
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
-                <label
-                  htmlFor="login-aadhaar"
-                  className="block text-sm font-medium text-gray-700"
-                >
+                <label className="block text-sm font-medium text-gray-700">
                   Aadhaar Number
                 </label>
                 <input
                   type="text"
-                  id="login-aadhaar"
                   name="login-aadhaar"
                   placeholder="Enter your 12-digit Aadhaar number"
-                  className="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200"
+                  className="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg shadow-sm"
                   required
                   pattern="[0-9]{12}"
                 />
               </div>
+
               <div className="relative">
-                <label
-                  htmlFor="login-password"
-                  className="block text-sm font-medium text-gray-700"
-                >
+                <label className="block text-sm font-medium text-gray-700">
                   Password
                 </label>
                 <input
-                  type={eyePassword ? "text" : "password"}
-                  id="login-password"
+                  type={eyeLogin ? "text" : "password"}
                   name="login-password"
                   placeholder="Enter your password"
-                  className="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200"
+                  className="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg shadow-sm"
                   required
                 />
-                <div className="absolute right-3 top-9 z-10">
-                  {eyePassword ? (
+                <div className="absolute right-3 top-9 cursor-pointer">
+                  {eyeLogin ? (
                     <Eye
-                      onClick={() => setEyePassword(!eyePassword)}
-                      className=" h-5 w-5 text-gray-400 cursor-pointer"
+                      onClick={() => setEyeLogin(false)}
+                      className="h-5 w-5 text-gray-400"
                     />
                   ) : (
                     <EyeClosed
-                      onClick={() => setEyePassword(!eyePassword)}
-                      className=" h-5 w-5 text-gray-400 cursor-pointer"
+                      onClick={() => setEyeLogin(true)}
+                      className="h-5 w-5 text-gray-400"
                     />
                   )}
                 </div>
               </div>
+
               {message.text && (
                 <div
                   className={`p-3 rounded-lg text-sm ${
@@ -187,122 +192,113 @@ export default function Login() {
                       ? "bg-green-100 text-green-800"
                       : "bg-red-100 text-red-800"
                   }`}
-                  role="alert"
                 >
                   {message.text}
                 </div>
               )}
+
               <button
                 type="submit"
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-[#7DB1AD] hover:bg-[#6B9E99] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7DB1AD] transition-colors duration-200"
+                disabled={loadingLogin}
+                className="w-full py-2 px-4 rounded-lg text-white bg-[#7DB1AD] hover:bg-[#6B9E99] flex justify-center items-center"
               >
-                Login
+                {loadingLogin ? (
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  "Login"
+                )}
               </button>
             </form>
           </div>
         ) : (
-          // Signup Form
+          /* SIGNUP FORM */
           <div className="space-y-6">
             <h2 className="text-2xl font-bold text-gray-800 text-center">
               Create an Account
             </h2>
+
             <form onSubmit={handleSignup} className="space-y-4">
               <div>
-                <label
-                  htmlFor="signup-name"
-                  className="block text-sm font-medium text-gray-700"
-                >
+                <label className="block text-sm font-medium text-gray-700">
                   Full Name
                 </label>
                 <input
                   type="text"
-                  id="signup-name"
                   name="signup-name"
                   placeholder="Enter your full name"
-                  className="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200"
+                  className="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg shadow-sm"
                   required
                 />
               </div>
+
               <div>
-                <label
-                  htmlFor="signup-phone"
-                  className="block text-sm font-medium text-gray-700"
-                >
+                <label className="block text-sm font-medium text-gray-700">
                   Phone Number
                 </label>
                 <input
                   type="tel"
-                  id="signup-phone"
                   name="signup-phone"
                   placeholder="Enter your phone number"
-                  className="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200"
+                  className="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg shadow-sm"
                   required
                   pattern="[0-9]{10}"
                 />
               </div>
+
               <div>
-                <label
-                  htmlFor="signup-gmail"
-                  className="block text-sm font-medium text-gray-700"
-                >
+                <label className="block text-sm font-medium text-gray-700">
                   Gmail Address
                 </label>
                 <input
                   type="email"
-                  id="signup-gmail"
                   name="signup-gmail"
                   placeholder="Enter your Gmail address"
-                  className="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200"
+                  className="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg shadow-sm"
                   required
                 />
               </div>
+
               <div>
-                <label
-                  htmlFor="signup-aadhaar"
-                  className="block text-sm font-medium text-gray-700"
-                >
+                <label className="block text-sm font-medium text-gray-700">
                   Aadhaar Number
                 </label>
                 <input
                   type="text"
-                  id="signup-aadhaar"
                   name="signup-aadhaar"
                   placeholder="Enter your 12-digit Aadhaar number"
-                  className="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200"
+                  className="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg shadow-sm"
                   required
                   pattern="[0-9]{12}"
                 />
               </div>
+
               <div className="relative">
-                <label
-                  htmlFor="signup-password"
-                  className="block text-sm font-medium text-gray-700"
-                >
+                <label className="block text-sm font-medium text-gray-700">
                   Create Password
                 </label>
                 <input
-                  type={eyePassword ? "text" : "password"}
-                  id="signup-password"
+                  type={eyeSignup ? "text" : "password"}
                   name="signup-password"
                   placeholder="Create a strong password"
-                  className="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200"
+                  className="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg shadow-sm"
                   required
                   minLength="8"
                 />
-                <div className="absolute right-3 top-9 z-10">
-                  {eyePassword ? (
+                <div className="absolute right-3 top-9 cursor-pointer">
+                  {eyeSignup ? (
                     <Eye
-                      onClick={() => setEyePassword(!eyePassword)}
-                      className=" h-5 w-5 text-gray-400 cursor-pointer"
+                      onClick={() => setEyeSignup(false)}
+                      className="h-5 w-5 text-gray-400"
                     />
                   ) : (
                     <EyeClosed
-                      onClick={() => setEyePassword(!eyePassword)}
-                      className=" h-5 w-5 text-gray-400 cursor-pointer"
+                      onClick={() => setEyeSignup(true)}
+                      className="h-5 w-5 text-gray-400"
                     />
                   )}
                 </div>
               </div>
+
               {message.text && (
                 <div
                   className={`p-3 rounded-lg text-sm ${
@@ -310,16 +306,21 @@ export default function Login() {
                       ? "bg-green-100 text-green-800"
                       : "bg-red-100 text-red-800"
                   }`}
-                  role="alert"
                 >
                   {message.text}
                 </div>
               )}
+
               <button
                 type="submit"
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-[#7DB1AD] hover:bg-[#6B9E99] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7DB1AD] transition-colors duration-200"
+                disabled={loadingSignup}
+                className="w-full py-2 px-4 rounded-lg text-white bg-[#7DB1AD] hover:bg-[#6B9E99] flex justify-center items-center"
               >
-                Sign Up
+                {loadingSignup ? (
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  "Sign Up"
+                )}
               </button>
             </form>
           </div>

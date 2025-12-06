@@ -7,27 +7,13 @@ import CompanyCarousel from "../../components/CompanyCarousel";
 import { useEffect } from "react";
 import { getUsers } from "../../api/user";
 import NewsFeed from "../../components/New";
+import { getSfAccessToken } from "../../../netlify/functions/getToken";
 
 const Home = () => {
-  const checkOAuth = async () => {
-    const res = await fetch("/.netlify/functions/sendEmail", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        username: "febing1salesforce@creative-raccoon-aw7ohx.com",
-        password: "Tfebin20@200gndfwTo4AYqOmYl7AOxwgiPDl",
-      }),
-    });
-
-    const data = await res.json();
-    console.log(data);
-  };
+  useEffect(() => {}, []);
   return (
     <div className="bg-[var(--color-bg)] min-h-screen text-[var(--color-text)]">
       <Navbar />
-      <button className="p-3 bg-amber-200 " onClick={checkOAuth}>
-        Check Salesforce OAuth
-      </button>
 
       {/* Hero Section */}
       <div
