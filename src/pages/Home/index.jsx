@@ -9,9 +9,25 @@ import { getUsers } from "../../api/user";
 import NewsFeed from "../../components/New";
 
 const Home = () => {
+  const checkOAuth = async () => {
+    const res = await fetch("/.netlify/functions/sendEmail", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        username: "febing1salesforce@creative-raccoon-aw7ohx.com",
+        password: "Tfebin20@200gndfwTo4AYqOmYl7AOxwgiPDl",
+      }),
+    });
+
+    const data = await res.json();
+    console.log(data);
+  };
   return (
     <div className="bg-[var(--color-bg)] min-h-screen text-[var(--color-text)]">
       <Navbar />
+      <button className="p-3 bg-amber-200 " onClick={checkOAuth}>
+        Check Salesforce OAuth
+      </button>
 
       {/* Hero Section */}
       <div
@@ -100,7 +116,7 @@ const Home = () => {
 
         {/* Services Section */}
         <section className="mt-16 bg-[var(--color-card-bg)] p-6 sm:p-8 rounded-2xl shadow-xl">
-          <NewsFeed/>
+          <NewsFeed />
         </section>
       </main>
 

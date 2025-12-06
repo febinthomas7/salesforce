@@ -1,42 +1,61 @@
-import nodemailer from "nodemailer";
+// require("dotenv").config();
 
-export async function handler(event) {
-  if (event.httpMethod !== "POST") {
-    return { statusCode: 405, body: "Method Not Allowed" };
-  }
+// import fetch from "node-fetch";
 
+export async function handler(event, context) {
   try {
-    const { firstName, lastName, email, phone, message } = JSON.parse(
-      event.body
+    console.log("RAW EVENT BODY:", event.body);
+    const { username, password } = JSON.parse(event.body || "{}");
+    console.log(process.env.CONSUMER_KEY);
+    if (!username || !password) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: "Username & password required" }),
+      };
+    }
+
+    const params = new URLSearchParams();
+    params.append("grant_type", "password");
+    params.append("client_id", process.env.CONSUMER_KEY);
+    params.append("client_secret", process.env.CONSUMER_SECRET);
+    params.append("username", username);
+    params.append("password", password); // must include security token
+
+    const res = await fetch(
+      "https://login.salesforce.com/services/oauth2/token",
+      {
+        method: "POST",
+        body: params,
+      }
     );
 
-    const transporter = nodemailer.createTransport({
-      service: "gmail", // you can also use SMTP
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
+    const data = await res.json();
+    console.log(data);
 
-    await transporter.sendMail({
-      from: `"MIT Contact" <${process.env.EMAIL_USER}>`,
-      to: process.env.EMAIL_USER, // <-- your inbox
-      replyTo: email, // so you can reply directly
-      subject: `New message from ${firstName} ${lastName}`,
-      html: `
-        <h3>New Contact Message</h3>
-        <p><b>Name:</b> ${firstName} ${lastName}</p>
-        <p><b>Email:</b> ${email}</p>
-        <p><b>Phone:</b> ${phone}</p>
-        <p><b>Message:</b><br/>${message}</p>
-      `,
-    });
+    // OAuth success has "access_token" field
+    if (data.access_token) {
+      return {
+        statusCode: 200,
+        body: JSON.stringify({
+          message: "OAuth Successful",
+          access_token: data.access_token.substring(0, 25) + "...",
+          instance_url: data.instance_url,
+        }),
+      };
+    }
 
+    // OAuth failed
     return {
-      statusCode: 200,
-      body: JSON.stringify({ success: true, message: "Email sent!" }),
+      statusCode: 400,
+      body: JSON.stringify({
+        message: "OAuth Failed",
+        salesforce_error: data.error_description || data.error,
+      }),
     };
   } catch (err) {
-    return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: err.message }),
+    };
   }
 }
