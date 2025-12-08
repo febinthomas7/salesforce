@@ -10,7 +10,7 @@ import {
 import DoctorForm from "./DoctorForm";
 import { initialDoctorForm } from "../../../utils";
 import { doctorsData } from "../../../utils";
-
+import { registerDoctor } from "../../../api/auth";
 const DoctorsSection = () => {
   const [doctors, setDoctors] = useState(doctorsData);
 
@@ -60,6 +60,8 @@ const DoctorsSection = () => {
       setEditingDoctorId(null);
     } else {
       onAddDoctor(formData);
+      registerDoctor(formData);
+      console.log(formData);
     }
     setFormData(initialDoctorForm);
     setIsFormOpen(false);
@@ -227,9 +229,9 @@ const DoctorsSection = () => {
 
       {/* Doctor Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredAndSortedDoctors.map((doctor) => (
+        {filteredAndSortedDoctors?.map((doctor, index) => (
           <div
-            key={doctor.doctor_id}
+            key={index}
             className="bg-[var(--color-card-bg)] rounded-3xl p-6 shadow-[0_4px_15px_rgba(0,0,0,0.08)] border-[var(--color-border)] hover:scale-105 transition-transform duration-300"
           >
             <div className="flex items-center justify-between mb-4">

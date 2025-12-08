@@ -10,12 +10,22 @@ export const registerUser = async (userData) => {
   return res.data;
 };
 
+export const loginDoctor = async (userData) => {
+  const res = await api.post("/.netlify/functions/doctorLogin", userData);
+  return res.data;
+};
+
+export const registerDoctor = async (userData) => {
+  const res = await api.post("/.netlify/functions/doctorRegister", userData);
+  return res.data;
+};
+
 export const registerHospital = async (userData) => {
-  const res = await api.post("/api/hospital/register", userData);
+  const res = await api.post("/.netlify/functions/hospitalResgister", userData);
   return res.data;
 };
 
 export const loginHospital = async (userData) => {
-  const res = await api.post("/api/hospital/login", userData);
+  const res = await api.post("/.netlify/functions/hospitalLogin", userData);
   return res.data;
 };

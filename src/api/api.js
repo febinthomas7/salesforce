@@ -19,7 +19,7 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 400) {
+    if (error.response?.status === 500) {
       localStorage.removeItem("token");
       window.location.href = "/";
     }

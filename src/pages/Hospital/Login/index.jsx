@@ -5,6 +5,8 @@ import { useNavigate } from "react-router-dom";
 
 export default function Login() {
   const [isLogin, setIsLogin] = useState(true);
+  const [loadingLogin, setLoadingLogin] = useState(false);
+  const [loadingSignup, setLoadingSignup] = useState(false);
   const [message, setMessage] = useState({ text: "", type: "" });
   const [selectedOrganization, setSelectedOrganization] = useState("");
   const [eyePassword, setEyePassword] = useState(false);
@@ -21,6 +23,8 @@ export default function Login() {
 
   const handleSignup = async (e) => {
     e.preventDefault();
+    setLoadingSignup(true);
+    z;
     const formData = new FormData(e.target);
 
     const credentials = {
@@ -40,15 +44,17 @@ export default function Login() {
         });
       }
     } catch (error) {
-      console.error(error);
       setMessage({
-        text: error.response?.data?.error || "Login failed",
+        text: "Invalid Credentials",
         type: "error",
       });
+    } finally {
+      setLoadingSignup(false);
     }
   };
   const handleLogin = async (e) => {
     e.preventDefault();
+    setLoadingLogin(true);
     const formData = new FormData(e.target);
 
     const credentials = {
@@ -77,11 +83,12 @@ export default function Login() {
         setMessage({ text: "Invalid Credentials", type: "error" });
       }
     } catch (error) {
-      console.error("Login error:", error);
       setMessage({
-        text: error.response?.data?.error || "Login failed",
+        text: "Invalid Credentials",
         type: "error",
       });
+    } finally {
+      setLoadingLogin(false);
     }
   };
 
@@ -168,7 +175,7 @@ export default function Login() {
                 <div className="absolute right-3 top-8 z-10">
                   {eyePassword ? (
                     <Eye
-                      onClick={() => setEyePassword(eyePassword)}
+                      onClick={() => setEyePassword(!eyePassword)}
                       className=" h-5 w-5 text-gray-400 cursor-pointer"
                     />
                   ) : (
@@ -193,9 +200,14 @@ export default function Login() {
               )}
               <button
                 type="submit"
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-[#7DB1AD] hover:bg-[#6B9E99] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7DB1AD] transition-colors duration-200"
+                disabled={loadingLogin}
+                className="w-full py-2 px-4 rounded-lg text-white bg-[#7DB1AD] hover:bg-[#6B9E99] flex justify-center items-center"
               >
-                Login
+                {loadingLogin ? (
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  "Login"
+                )}
               </button>
             </form>
           </div>
@@ -248,13 +260,13 @@ export default function Login() {
                   htmlFor="signup-hospital-id"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Hospital ID
+                  NPI ID
                 </label>
                 <input
                   type="text"
                   id="signup-hospital-id"
                   name="signup-hospital-id"
-                  placeholder="Enter an existing internal ID"
+                  placeholder="Enter your NPI ID"
                   className="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-[#7DB1AD] focus:border-[#7DB1AD] transition-colors duration-200"
                   required
                 />
@@ -274,9 +286,14 @@ export default function Login() {
 
               <button
                 type="submit"
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-[#7DB1AD] hover:bg-[#6B9E99] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7DB1AD] transition-colors duration-200"
+                disabled={loadingSignup}
+                className="w-full py-2 px-4 rounded-lg text-white bg-[#7DB1AD] hover:bg-[#6B9E99] flex justify-center items-center"
               >
-                Sign Up
+                {loadingSignup ? (
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  "Sign Up"
+                )}
               </button>
             </form>
           </div>

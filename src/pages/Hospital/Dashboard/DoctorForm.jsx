@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Send, User, Stethoscope, Building2 } from "lucide-react";
+import { Send } from "lucide-react";
 
 const DoctorForm = ({
   formData,
@@ -9,15 +9,19 @@ const DoctorForm = ({
   editingDoctorId,
 }) => {
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false); // <-- NEW
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleFormSubmit = (e) => {
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
-    onSubmit(e);
+    setLoading(true); // <-- START LOADING
+    await onSubmit(e);
+    setLoading(false); // <-- STOP LOADING
+
     setIsSubmitted(true);
     setTimeout(() => setIsSubmitted(false), 5000);
   };
@@ -27,6 +31,7 @@ const DoctorForm = ({
       <h3 className="text-3xl font-bold text-[var(--color-card-text)] mb-6">
         {editingDoctorId ? "Edit Doctor" : "Add New Doctor"}
       </h3>
+
       <form onSubmit={handleFormSubmit} className="space-y-6">
         {/* Name */}
         <div>
@@ -67,8 +72,8 @@ const DoctorForm = ({
           </label>
           <input
             type="password"
-            name="password_hash"
-            value={formData.password_hash || ""}
+            name="password"
+            value={formData.password || ""}
             onChange={handleChange}
             required={!editingDoctorId}
             className="w-full px-4 py-3 border-2 border-[var(--color-border)] rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent bg-[var(--color-card-bg)] transition-all"
@@ -80,7 +85,7 @@ const DoctorForm = ({
           />
         </div>
 
-        {/* Phone Number */}
+        {/* Phone */}
         <div>
           <label className="block text-sm font-bold text-[var(--color-card-text)] mb-2">
             Phone Number
@@ -95,7 +100,22 @@ const DoctorForm = ({
           />
         </div>
 
-        {/* Date of Birth */}
+        {/* Phone */}
+        <div>
+          <label className="block text-sm font-bold text-[var(--color-card-text)] mb-2">
+            Adhaar Number
+          </label>
+          <input
+            type="text"
+            name="adhaar_no"
+            value={formData.adhaar_no || ""}
+            onChange={handleChange}
+            className="w-full px-4 py-3 border-2 border-[var(--color-border)] rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent bg-[var(--color-card-bg)] transition-all"
+            placeholder="Enter adhaar number"
+          />
+        </div>
+
+        {/* DOB */}
         <div>
           <label className="block text-sm font-bold text-[var(--color-card-text)] mb-2">
             Date of Birth
@@ -140,7 +160,7 @@ const DoctorForm = ({
           />
         </div>
 
-        {/* Form Actions */}
+        {/* Buttons */}
         <div className="flex flex-col sm:flex-row sm:justify-between gap-4 mt-4">
           <button
             type="button"
@@ -149,16 +169,25 @@ const DoctorForm = ({
           >
             Cancel
           </button>
+
           <button
             type="submit"
+            disabled={loading} // <-- DISABLE BUTTON
             className="w-full sm:w-auto flex items-center justify-center px-6 py-3 rounded-xl text-white bg-[var(--color-primary)] hover:bg-[var(--color-hover)] shadow-[var(--color-shadow)] transition-all transform hover:scale-105"
           >
-            <Send className="mr-2 w-5 h-5" />
-            {editingDoctorId ? "Update Doctor" : "Add Doctor"}
+            {loading ? (
+              // LOADER SPINNER
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            ) : (
+              <>
+                <Send className="mr-2 w-5 h-5" />
+                {editingDoctorId ? "Update Doctor" : "Add Doctor"}
+              </>
+            )}
           </button>
         </div>
 
-        {/* Submission Success */}
+        {/* Success Message */}
         {isSubmitted && (
           <div className="mt-6 p-6 bg-[var(--color-border)] border-2 border-[var(--color-primary)] rounded-2xl text-[var(--color-card-text)] font-semibold">
             Doctor details have been successfully{" "}
