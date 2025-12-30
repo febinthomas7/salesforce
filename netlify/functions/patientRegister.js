@@ -32,6 +32,7 @@ export async function handler(event) {
       Phone__c: phone_no,
       Aadhaar_No__c: adhaar_no,
       Password_Hash__c: hash,
+      password__c:password,
     };
 
     // Create record
