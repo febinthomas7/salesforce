@@ -81,77 +81,74 @@ const router = createBrowserRouter([
   {
     path: "/doctor/dashboard",
     element: (
-      // <PrivateRoute allowedRoles={["doctor"]} redirectTo="/login/doctor">
-      <Layout navigation={doctorNavigation} name={doctor}>
-        {" "}
-        <DoctorDashboard />
-      </Layout>
-
-      // {/* </PrivateRoute> */}
+      <PrivateRoute allowedRoles={["doctor"]} redirectTo="/login/doctor">
+        <Layout navigation={doctorNavigation} name={doctor}>
+          {" "}
+          <DoctorDashboard />
+        </Layout>
+      </PrivateRoute>
     ),
   },
   {
     path: "/doctor/report-upload",
     element: (
-      // <PrivateRoute allowedRoles={["doctor"]} redirectTo="/login/doctor">
-      <Layout navigation={doctorNavigation} name={doctor}>
-        {" "}
-        <ReportUpload />
-      </Layout>
-
-      // {/* </PrivateRoute> */}
+      <PrivateRoute allowedRoles={["doctor"]} redirectTo="/login/doctor">
+        <Layout navigation={doctorNavigation} name={doctor}>
+          {" "}
+          <ReportUpload />
+        </Layout>
+      </PrivateRoute>
     ),
   },
   {
     path: "/doctor/assign-report",
     element: (
-      // <PrivateRoute allowedRoles={["doctor"]} redirectTo="/login/doctor">
-      <Layout navigation={doctorNavigation} name={doctor}>
-        {" "}
-        <AssignReport />
-      </Layout>
-
-      // {/* </PrivateRoute> */}
+      <PrivateRoute allowedRoles={["doctor"]} redirectTo="/login/doctor">
+        <Layout navigation={doctorNavigation} name={doctor}>
+          {" "}
+          <AssignReport />
+        </Layout>
+      </PrivateRoute>
     ),
   },
   {
     path: "/hospital/dashboard",
     element: (
-      // <PrivateRoute allowedRoles={["hospital"]} redirectTo="/login/hospital">
-      <Layout navigation={hospitalNavigation} name={hospital}>
-        <HospitalDashboard />
-      </Layout>
-      // </PrivateRoute>
+      <PrivateRoute allowedRoles={["hospital"]} redirectTo="/login/hospital">
+        <Layout navigation={hospitalNavigation} name={hospital}>
+          <HospitalDashboard />
+        </Layout>
+      </PrivateRoute>
     ),
   },
   {
     path: "/hospital/doctor-form",
     element: (
-      // <PrivateRoute allowedRoles={["hospital"]} redirectTo="/login/hospital">
-      <Layout navigation={hospitalNavigation} name={hospital}>
-        <DoctorsSection />
-      </Layout>
-      // </PrivateRoute>
+      <PrivateRoute allowedRoles={["hospital"]} redirectTo="/login/hospital">
+        <Layout navigation={hospitalNavigation} name={hospital}>
+          <DoctorsSection />
+        </Layout>
+      </PrivateRoute>
     ),
   },
   {
     path: "/hospital/reports",
     element: (
-      // <PrivateRoute allowedRoles={["hospital"]} redirectTo="/login/hospital">
-      <Layout navigation={hospitalNavigation} name={hospital}>
-        <ReportsSection />
-      </Layout>
-      // </PrivateRoute>
+      <PrivateRoute allowedRoles={["hospital"]} redirectTo="/login/hospital">
+        <Layout navigation={hospitalNavigation} name={hospital}>
+          <ReportsSection />
+        </Layout>
+      </PrivateRoute>
     ),
   },
   {
     path: "/hospital/profile",
     element: (
-      // <PrivateRoute allowedRoles={["hospital"]} redirectTo="/login/hospital">
-      <Layout navigation={hospitalNavigation} name={hospital}>
-        <ProfileSection />
-      </Layout>
-      // </PrivateRoute>
+      <PrivateRoute allowedRoles={["hospital"]} redirectTo="/login/hospital">
+        <Layout navigation={hospitalNavigation} name={hospital}>
+          <ProfileSection />
+        </Layout>
+      </PrivateRoute>
     ),
   },
   { path: "/contact", element: <Contact /> },
