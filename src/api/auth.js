@@ -29,3 +29,8 @@ export const loginHospital = async (userData) => {
   const res = await api.post("/.netlify/functions/hospitalLogin", userData);
   return res.data;
 };
+
+export const createReport = async (userData) => {
+  const res = await api.post("/.netlify/functions/createReport", userData);
+  return res.data;
+};

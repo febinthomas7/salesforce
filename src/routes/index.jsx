@@ -1,7 +1,6 @@
 import { createBrowserRouter } from "react-router-dom";
 import { lazy } from "react";
 import { PrivateRoute, PublicRoute } from "../utils"; // ⬅️ import it
-
 import Contact from "../pages/ContactUs";
 import About from "../pages/AboutUs";
 import Service from "../pages/Services";
@@ -92,12 +91,12 @@ const router = createBrowserRouter([
   {
     path: "/doctor/report-upload",
     element: (
-      <PrivateRoute allowedRoles={["doctor"]} redirectTo="/login/doctor">
-        <Layout navigation={doctorNavigation} name={doctor}>
-          {" "}
-          <ReportUpload />
-        </Layout>
-      </PrivateRoute>
+      // <PrivateRoute allowedRoles={["doctor"]} redirectTo="/login/doctor">
+      <Layout navigation={doctorNavigation} name={doctor}>
+        {" "}
+        <ReportUpload />
+      </Layout>
+      // </PrivateRoute>
     ),
   },
   {
