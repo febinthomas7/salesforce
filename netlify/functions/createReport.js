@@ -52,8 +52,12 @@ export async function handler(event) {
             // 2️⃣ Salesforce Auth
             const { access_token, instance_url } = await getSfAccessToken();
 
+            //static add for perticular pateint 
+            const TEST_PATIENT_ID = "a00NS00002UwgpPYAR";
+
             // 3️⃣ Create Report__c
             const sfBody = {
+              Patient__c: TEST_PATIENT_ID, // Hardcoded for your test patient
               Patient_Adhaar__c: fields.patientId,
               Title__c: fields.title || "Medical Report",
               Doctor_Id__c: fields.doctorId,
