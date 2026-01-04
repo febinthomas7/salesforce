@@ -62,10 +62,7 @@ export async function handler(event) {
               Patient__c: TEST_PATIENT_ID, // Hardcoded for your test patient
               Doctor__c: TEST_DOCTOR_ID, // Hardcoded for your test doctor
               Hospital__c: TEST_HOSPITAL_ID, // Hardcoded for your test hospital
-              Patient_Adhaar__c: fields.patientId,
               Title__c: fields.title || "Medical Report",
-              Doctor_Id__c: fields.doctorId,
-              NPI_id__c: fields.hospitalId,
               URL__c: result.secure_url,
               Category__c: fields.category,
               Notes__c: fields.description,
