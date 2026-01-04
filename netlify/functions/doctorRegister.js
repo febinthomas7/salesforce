@@ -40,8 +40,12 @@ export async function handler(event) {
     // Get access token
     const { access_token, instance_url } = await getSfAccessToken();
 
+    //static add for perticular Hospital
+    const TEST_HOSPITAL_ID = "a04NS00000RN26PYAT";
+
     // Prepare Salesforce object (Patient__c)
     const sfBody = {
+      Hospital__c: TEST_HOSPITAL_ID,
       Name: name,
       Email__c: email,
       Phone_Number__c: phone_no,
@@ -49,7 +53,6 @@ export async function handler(event) {
       Password_Hash__c: hash,
       Date_of_Birth__C: date_of_birth,
       Specialization__C: specialization,
-      NPI_Id__C: npi_id,
       Doctor_Id__C: id,
     };
 
