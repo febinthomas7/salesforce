@@ -7,13 +7,15 @@ import {
   Search,
   Calendar,
 } from "lucide-react";
+import { useEffect } from "react";
+import { getDoctorsByHospital } from "../../../api/auth";
 import DoctorForm from "./DoctorForm";
 import { initialDoctorForm } from "../../../utils";
 import { doctorsData } from "../../../utils";
 import { registerDoctor } from "../../../api/auth";
+const token = localStorage.getItem("token");
 const DoctorsSection = () => {
-  const [doctors, setDoctors] = useState(doctorsData);
-
+  const [doctors, setDoctors] = useState([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formData, setFormData] = useState(initialDoctorForm);
   const [editingDoctorId, setEditingDoctorId] = useState(null);
@@ -23,57 +25,66 @@ const DoctorsSection = () => {
   const [selectedHospital, setSelectedHospital] = useState("all");
   const [sortBy, setSortBy] = useState("name");
   const [sortOrder, setSortOrder] = useState("asc");
-  const onAddDoctor = (doctor) => {
-    const newDoctor = {
-      ...doctor,
-      id: "DOC" + Math.floor(Math.random() * 1000 + 100),
-      lastLogin: new Date().toISOString(),
-      specialty: doctor.specialization,
-      contact: doctor.email,
-    };
-    setDoctors([newDoctor, ...doctors]);
-  };
 
-  const onUpdateDoctor = (id, updatedDoctor) => {
-    setDoctors(
-      doctors.map((doc) =>
-        doc.id === id
-          ? {
-              ...doc,
-              ...updatedDoctor,
-              specialty:
-                updatedDoctor.specialization || updatedDoctor.specialty,
-              contact: updatedDoctor.email || updatedDoctor.contact,
-            }
-          : doc
-      )
-    );
-  };
+  /* 🔹 LOAD DOCTORS FROM BACKEND */
+  useEffect(() => {
+    async function loadDoctors() {
+      const res = await getDoctorsByHospital(token);
+      if (res?.status) {
+        setDoctors(
+          res.doctors.map((d) => ({
+            doctor_id: d.Doctor_Id__c,
+            name: d.Name,
+            email: d.Email__c,
+            npi_id: d.Hospital__c,
+            created_at: d.CreatedDate,
+          }))
+        );
+      }
+    }
+    loadDoctors();
+  }, []);
 
-  const onDeleteDoctor = (id) => {
-    setDoctors(doctors.filter((doc) => doc.id !== id));
-  };
-  const handleFormSubmit = (e) => {
+  /* 🔹 ADD / UPDATE */
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
+
     if (editingDoctorId) {
-      onUpdateDoctor(editingDoctorId, formData);
+      setDoctors((prev) =>
+        prev.map((doc) =>
+          doc.id === editingDoctorId ? { ...doc, ...formData } : doc
+        )
+      );
       setEditingDoctorId(null);
     } else {
-      onAddDoctor(formData);
-      registerDoctor(formData);
-      console.log(formData);
+      const res = await registerDoctor(formData);
+      if (res?.status) {
+        setDoctors((prev) => [
+          {
+            ...formData,
+            doctor_id: formData.id,
+            created_at: new Date().toISOString(),
+          },
+          ...prev,
+        ]);
+      }
     }
+
     setFormData(initialDoctorForm);
     setIsFormOpen(false);
   };
 
+  /* 🔹 EDIT */
   const handleEditClick = (doctor) => {
     setFormData(doctor);
     setEditingDoctorId(doctor.doctor_id);
     setIsFormOpen(true);
   };
 
-  const handleDeleteClick = (id) => onDeleteDoctor(id);
+  /* 🔹 DELETE (UI ONLY, API OPTIONAL) */
+  const handleDeleteClick = (doctorId) => {
+    setDoctors((prev) => prev.filter((doc) => doc.doctor_id !== doctorId));
+  };
 
   const handleAddNewClick = () => {
     setIsFormOpen(true);
@@ -87,16 +98,13 @@ const DoctorsSection = () => {
     setEditingDoctorId(null);
   };
 
-  // Filter & sort doctors
+  /* 🔹 FILTER + SORT */
   const filteredAndSortedDoctors = useMemo(() => {
     let filtered = doctors.filter((doc) => {
       const matchesSearch =
-        doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (doc.specialization || "")
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase()) ||
-        (doc.npi_id || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (doc.email || "").toLowerCase().includes(searchTerm.toLowerCase());
+        doc.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        doc.specialization?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        doc.email?.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchesSpecialization =
         selectedSpecialization === "all" ||
@@ -113,12 +121,11 @@ const DoctorsSection = () => {
         return sortOrder === "asc"
           ? a.name.localeCompare(b.name)
           : b.name.localeCompare(a.name);
-      } else if (sortBy === "created_at") {
-        const dateA = new Date(a.created_at).getTime();
-        const dateB = new Date(b.created_at).getTime();
+      } else {
+        const dateA = new Date(a.created_at || 0).getTime();
+        const dateB = new Date(b.created_at || 0).getTime();
         return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
       }
-      return 0;
     });
 
     return filtered;
@@ -131,11 +138,11 @@ const DoctorsSection = () => {
     sortOrder,
   ]);
 
-  // Unique values for dropdown filters
   const specializations = [
     "all",
     ...new Set(doctors.map((d) => d.specialization).filter(Boolean)),
   ];
+
   const hospitals = [
     "all",
     ...new Set(doctors.map((d) => d.npi_id).filter(Boolean)),

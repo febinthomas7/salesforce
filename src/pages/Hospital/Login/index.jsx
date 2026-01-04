@@ -26,8 +26,6 @@ export default function Login() {
         // Save JWT token in localStorage
         localStorage.setItem("token", data.token);
         localStorage.setItem("role", "hospital");
-        // Save hospital/patient info
-        localStorage.setItem("patient", JSON.stringify(data.data));
 
         setMessage({ text: "Login successful!", type: "success" });
         e.target.reset();
@@ -79,7 +77,7 @@ export default function Login() {
                 required
               />
             </div>
-            
+
             <div className="relative">
               <label
                 htmlFor="login-password"

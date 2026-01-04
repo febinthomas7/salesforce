@@ -1,0 +1,83 @@
+import jwt from "jsonwebtoken";
+import { getSfAccessToken } from "./getToken";
+
+export async function handler(event) {
+  try {
+    // 1️⃣ AUTH CHECK
+    const authHeader =
+      event.headers.authorization || event.headers.Authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return {
+        statusCode: 401,
+        body: JSON.stringify({ error: "Invalid authorization format" }),
+      };
+    }
+
+    const token = authHeader.split(" ")[1];
+
+    // 2️⃣ VERIFY JWT
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch {
+      return {
+        statusCode: 401,
+        body: JSON.stringify({ error: "Invalid token" }),
+      };
+    }
+
+    // 3️⃣ ENSURE HOSPITAL TOKEN
+    if (!decoded.hospital_id) {
+      return {
+        statusCode: 403,
+        body: JSON.stringify({ error: "Hospital access only" }),
+      };
+    }
+
+    const hospitalId = decoded.hospital_id;
+
+    // 4️⃣ SALESFORCE ACCESS TOKEN
+    const { access_token, instance_url } = await getSfAccessToken();
+
+    // 5️⃣ QUERY ALL DOCTORS UNDER HOSPITAL
+    const soql = `
+      SELECT
+        Id,
+        Name,
+        Email__c,
+        Doctor_Id__c,
+        Hospital__c 
+      FROM Doctor__c
+      WHERE Hospital__c='${hospitalId}'
+      ORDER BY CreatedDate DESC
+    `;
+
+    const res = await fetch(
+      `${instance_url}/services/data/v57.0/query?q=${encodeURIComponent(soql)}`,
+      {
+        headers: {
+          Authorization: `Bearer ${access_token}`,
+        },
+      }
+    );
+
+    const data = await res.json();
+    console.log("Fetched doctors data:", data);
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        status: true,
+        count: data.totalSize,
+        doctors: data.records || [],
+      }),
+    };
+  } catch (err) {
+    console.error("Get doctors error:", err);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: err.message }),
+    };
+  }
+}

@@ -19,7 +19,7 @@ export async function handler(event) {
     const { access_token, instance_url } = await getSfAccessToken();
 
     // 2. QUERY SALESFORCE
-    const soql = `SELECT  NPI_Id__c, Password_Hash__c FROM Hospital__c WHERE Npi_Id__c='${npi_id}' LIMIT 1`;
+    const soql = `SELECT  NPI_Id__c, Password_Hash__c , id  FROM Hospital__c WHERE Npi_Id__c='${npi_id}' LIMIT 1`;
 
     const qRes = await fetch(
       `${instance_url}/services/data/v57.0/query?q=${encodeURIComponent(soql)}`,
@@ -36,6 +36,7 @@ export async function handler(event) {
     }
 
     const record = qData.records[0];
+    console.log("Fetched hospital record:", record);
 
     // 3. COMPARE HASHES
     if (inputHash !== record.Password_Hash__c) {
@@ -44,11 +45,25 @@ export async function handler(event) {
         body: JSON.stringify({ error: "Invalid credentials" }),
       };
     }
+    console.log("Hospital authenticated:", {
+      id: record.Id,
+      name: record.Name,
+      email: record.Email__c,
+      npiId: record.NPI_id__c,
+      hospital_id: record.id,
+      hospital: record.Hospital__c,
+    });
 
     // 4. GENERATE JWT
     const token = jwt.sign(
-      { id: record.Id, name: record.Name, email: record.Email__c },
-      process.env.JWT_SECRET || "devsecret",
+      {
+        id: record.Id,
+        name: record.Name,
+        email: record.Email__c,
+        npiId: record.NPI_id__c,
+        hospital_id: record.Id,
+      },
+      process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
 

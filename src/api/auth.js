@@ -34,3 +34,12 @@ export const createReport = async (userData) => {
   const res = await api.post("/.netlify/functions/createReport", userData);
   return res.data;
 };
+
+export const getDoctorsByHospital = async (token) => {
+  const res = await api.get("/.netlify/functions/getDoctorsByHospital", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return res.data;
+};
