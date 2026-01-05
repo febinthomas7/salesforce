@@ -1,0 +1,40 @@
+import { getSfAccessToken } from "./getToken";
+
+export async function handler(event) {
+  try {
+    // This will now either work or jump straight to the catch block below
+    const { access_token, instance_url } = await getSfAccessToken();
+
+    const soql = `
+      SELECT Id, Company_Name__c, Owner_Name__c, Description__c, Logo_URL__c, Website_URL__c 
+      FROM Company_Advertisement__c 
+      ORDER BY CreatedDate DESC
+    `;
+
+    const res = await fetch(
+      `${instance_url}/services/data/v57.0/query?q=${encodeURIComponent(soql)}`,
+      {
+        headers: { Authorization: `Bearer ${access_token}` },
+      }
+    );
+
+    const data = await res.json();
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        status: true,
+        partners: data.records || [],
+      }),
+    };
+  } catch (err) {
+    console.error("Handler Error:", err.message);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ 
+        error: "Backend Failure", 
+        details: err.message 
+      }),
+    };
+  }
+}
