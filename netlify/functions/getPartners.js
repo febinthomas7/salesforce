@@ -6,7 +6,7 @@ export async function handler(event) {
     const { access_token, instance_url } = await getSfAccessToken();
 
     const soql = `
-      SELECT Id, Company_Name__c, Owner_Name__c, Description__c, Logo_URL__c, Website_URL__c 
+      SELECT Id, Name, Description__c, Logo__c, Website__c 
       FROM Company_Advertisement__c 
       ORDER BY CreatedDate DESC
     `;
@@ -31,9 +31,9 @@ export async function handler(event) {
     console.error("Handler Error:", err.message);
     return {
       statusCode: 500,
-      body: JSON.stringify({ 
-        error: "Backend Failure", 
-        details: err.message 
+      body: JSON.stringify({
+        error: "Backend Failure",
+        details: err.message,
       }),
     };
   }
