@@ -1,199 +1,154 @@
 import React, { useState } from "react";
-import { Send } from "lucide-react";
+import { 
+  Send, User, Mail, Lock, Phone, Stethoscope, 
+  Hash, CreditCard, Calendar
+} from "lucide-react";
 
-const DoctorForm = ({
-  formData,
-  setFormData,
-  onSubmit,
-  onCancel,
-  editingDoctorId,
-}) => {
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [loading, setLoading] = useState(false); // <-- NEW
+const DoctorForm = ({ formData, setFormData, onSubmit, onCancel, editingDoctorId }) => {
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleFormSubmit = async (e) => {
+  const handleSubmitInternal = async (e) => {
     e.preventDefault();
-    setLoading(true); // <-- START LOADING
+    setLoading(true);
     await onSubmit(e);
-    setLoading(false); // <-- STOP LOADING
-
-    setIsSubmitted(true);
-    setTimeout(() => setIsSubmitted(false), 5000);
+    setLoading(false);
   };
 
+  // Helper classes - Tighter spacing and padding
+  const inputWrapperClass = "relative flex items-center";
+  const iconClass = "absolute left-3 w-3.5 h-3.5 text-gray-400 pointer-events-none"; // Slightly smaller icon
+  const inputClass = "w-full pl-9 pr-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 outline-none transition-all duration-200 placeholder-gray-400 text-gray-700";
+  const labelClass = "block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1 ml-0.5";
+
   return (
-    <div className="fade-in bg-[var(--color-card-bg)] rounded-3xl shadow-[var(--color-shadow)] border border-[var(--color-border)] p-8 max-w-3xl mx-auto">
-      <h3 className="text-3xl font-bold text-[var(--color-card-text)] mb-6">
-        {editingDoctorId ? "Edit Doctor" : "Add New Doctor"}
-      </h3>
-
-      <form onSubmit={handleFormSubmit} className="space-y-6">
-        {/* Name */}
+    <div className="p-5 bg-white"> {/* Reduced padding */}
+      {/* Header */}
+      <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-3"> {/* Reduced margin/padding */}
         <div>
-          <label className="block text-sm font-bold text-[var(--color-card-text)] mb-2">
-            Name
-          </label>
-          <input
-            type="text"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            required
-            className="w-full px-4 py-3 border-2 border-[var(--color-border)] rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent bg-[var(--color-card-bg)] transition-all"
-            placeholder="Enter full name"
-          />
+          <h3 className="text-lg font-bold text-gray-800"> {/* Smaller Title */}
+            {editingDoctorId ? "Edit Profile" : "New Registration"}
+          </h3>
+          <p className="text-[11px] text-gray-400 mt-0.5">Enter the doctor's professional details below.</p>
+        </div>
+        <div className="w-9 h-9 bg-teal-50 rounded-full flex items-center justify-center text-teal-600">
+          <Stethoscope className="w-4 h-4" />
+        </div>
+      </div>
+      
+      <form onSubmit={handleSubmitInternal} className="space-y-3"> {/* Reduced vertical space */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3"> {/* Reduced gap */}
+          
+          {/* Full Name */}
+          <div className="md:col-span-2">
+            <label className={labelClass}>Full Name</label>
+            <div className={inputWrapperClass}>
+              <User className={iconClass} />
+              <input type="text" name="name" value={formData.name || ""} onChange={handleChange} required 
+                className={inputClass} placeholder="Dr. John Doe"
+              />
+            </div>
+          </div>
+
+          {/* Email */}
+          <div>
+            <label className={labelClass}>Email Address</label>
+            <div className={inputWrapperClass}>
+              <Mail className={iconClass} />
+              <input type="email" name="email" value={formData.email || ""} onChange={handleChange} required 
+                className={inputClass} placeholder="doctor@hospital.com"
+              />
+            </div>
+          </div>
+
+          {/* Password */}
+          <div>
+            <label className={labelClass}>Password</label>
+            <div className={inputWrapperClass}>
+              <Lock className={iconClass} />
+              <input type="password" name="password" value={formData.password || ""} onChange={handleChange} 
+                required={!editingDoctorId} placeholder={editingDoctorId ? "Unchanged" : "••••••••"}
+                className={inputClass} 
+              />
+            </div>
+          </div>
+
+          {/* Phone */}
+          <div>
+            <label className={labelClass}>Phone Number</label>
+            <div className={inputWrapperClass}>
+              <Phone className={iconClass} />
+              <input type="text" name="phone_no" value={formData.phone_no || ""} onChange={handleChange} 
+                className={inputClass} placeholder="+1 (555) 000-0000"
+              />
+            </div>
+          </div>
+
+          {/* Specialization */}
+          <div>
+            <label className={labelClass}>Specialization</label>
+            <div className={inputWrapperClass}>
+              <Stethoscope className={iconClass} />
+              <input type="text" name="specialization" value={formData.specialization || ""} onChange={handleChange} 
+                className={inputClass} placeholder="e.g. Cardiology"
+              />
+            </div>
+          </div>
+
+          {/* Hospital NPI */}
+          <div className="md:col-span-2">
+            <label className={labelClass}>Hospital NPI ID</label>
+            <div className={inputWrapperClass}>
+              <Hash className={iconClass} />
+              <input type="text" name="npi_id" value={formData.npi_id || ""} onChange={handleChange} required 
+                className={inputClass} placeholder="Unique Provider ID"
+              />
+            </div>
+          </div>
+          
+           {/* Adhaar */}
+           <div>
+            <label className={labelClass}>Aadhaar Number</label>
+            <div className={inputWrapperClass}>
+              <CreditCard className={iconClass} />
+              <input type="text" name="adhaar_no" value={formData.adhaar_no || ""} onChange={handleChange} 
+                className={inputClass} placeholder="XXXX-XXXX-XXXX"
+              />
+            </div>
+          </div>
+          
+           {/* DOB */}
+           <div>
+            <label className={labelClass}>Date of Birth</label>
+            <div className={inputWrapperClass}>
+              <Calendar className={iconClass} />
+              <input type="date" name="date_of_birth" value={formData.date_of_birth || ""} onChange={handleChange} 
+                className={`${inputClass} pl-9`} 
+              />
+            </div>
+          </div>
         </div>
 
-        {/* Email */}
-        <div>
-          <label className="block text-sm font-bold text-[var(--color-card-text)] mb-2">
-            Email
-          </label>
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-            className="w-full px-4 py-3 border-2 border-[var(--color-border)] rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent bg-[var(--color-card-bg)] transition-all"
-            placeholder="Enter email address"
-          />
-        </div>
-
-        {/* Password */}
-        <div>
-          <label className="block text-sm font-bold text-[var(--color-card-text)] mb-2">
-            Password
-          </label>
-          <input
-            type="password"
-            name="password"
-            value={formData.password || ""}
-            onChange={handleChange}
-            required={!editingDoctorId}
-            className="w-full px-4 py-3 border-2 border-[var(--color-border)] rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent bg-[var(--color-card-bg)] transition-all"
-            placeholder={
-              editingDoctorId
-                ? "Leave blank to keep current password"
-                : "Enter password"
-            }
-          />
-        </div>
-
-        {/* Phone */}
-        <div>
-          <label className="block text-sm font-bold text-[var(--color-card-text)] mb-2">
-            Phone Number
-          </label>
-          <input
-            type="text"
-            name="phone_no"
-            value={formData.phone_no || ""}
-            onChange={handleChange}
-            className="w-full px-4 py-3 border-2 border-[var(--color-border)] rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent bg-[var(--color-card-bg)] transition-all"
-            placeholder="Enter phone number"
-          />
-        </div>
-
-        {/* Phone */}
-        <div>
-          <label className="block text-sm font-bold text-[var(--color-card-text)] mb-2">
-            Adhaar Number
-          </label>
-          <input
-            type="text"
-            name="adhaar_no"
-            value={formData.adhaar_no || ""}
-            onChange={handleChange}
-            className="w-full px-4 py-3 border-2 border-[var(--color-border)] rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent bg-[var(--color-card-bg)] transition-all"
-            placeholder="Enter adhaar number"
-          />
-        </div>
-
-        {/* DOB */}
-        <div>
-          <label className="block text-sm font-bold text-[var(--color-card-text)] mb-2">
-            Date of Birth
-          </label>
-          <input
-            type="date"
-            name="date_of_birth"
-            value={formData.date_of_birth || ""}
-            onChange={handleChange}
-            className="w-full px-4 py-3 border-2 border-[var(--color-border)] rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent bg-[var(--color-card-bg)] transition-all"
-          />
-        </div>
-
-        {/* Specialization */}
-        <div>
-          <label className="block text-sm font-bold text-[var(--color-card-text)] mb-2">
-            Specialization
-          </label>
-          <input
-            type="text"
-            name="specialization"
-            value={formData.specialization || ""}
-            onChange={handleChange}
-            className="w-full px-4 py-3 border-2 border-[var(--color-border)] rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent bg-[var(--color-card-bg)] transition-all"
-            placeholder="Enter specialization"
-          />
-        </div>
-
-        {/* Hospital NPI */}
-        <div>
-          <label className="block text-sm font-bold text-[var(--color-card-text)] mb-2">
-            Hospital NPI
-          </label>
-          <input
-            type="text"
-            name="npi_id"
-            value={formData.npi_id || ""}
-            onChange={handleChange}
-            required
-            className="w-full px-4 py-3 border-2 border-[var(--color-border)] rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent bg-[var(--color-card-bg)] transition-all"
-            placeholder="Enter Hospital NPI"
-          />
-        </div>
-
-        {/* Buttons */}
-        <div className="flex flex-col sm:flex-row sm:justify-between gap-4 mt-4">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="w-full sm:w-auto px-6 py-3 border border-gray-200 rounded-xl text-gray-700 bg-gray-200 hover:bg-gray-300 transition-all"
-          >
+        {/* Footer Buttons */}
+        <div className="flex justify-end gap-2 pt-4 border-t border-gray-100 mt-2">
+          <button type="button" onClick={onCancel} className="px-4 py-2 text-xs bg-white border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 hover:border-gray-300 font-semibold transition-all shadow-sm">
             Cancel
           </button>
-
-          <button
-            type="submit"
-            disabled={loading} // <-- DISABLE BUTTON
-            className="w-full sm:w-auto flex items-center justify-center px-6 py-3 rounded-xl text-white bg-[var(--color-primary)] hover:bg-[var(--color-hover)] shadow-[var(--color-shadow)] transition-all transform hover:scale-105"
-          >
+          <button type="submit" disabled={loading} className="px-5 py-2 text-xs bg-gradient-to-r from-teal-600 to-teal-500 text-white rounded-lg flex items-center gap-2 hover:from-teal-700 hover:to-teal-600 font-semibold transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
             {loading ? (
-              // LOADER SPINNER
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
             ) : (
               <>
-                <Send className="mr-2 w-5 h-5" />
-                {editingDoctorId ? "Update Doctor" : "Add Doctor"}
+                <Send className="w-3.5 h-3.5" /> 
+                {editingDoctorId ? "Update" : "Save"}
               </>
             )}
           </button>
         </div>
-
-        {/* Success Message */}
-        {isSubmitted && (
-          <div className="mt-6 p-6 bg-[var(--color-border)] border-2 border-[var(--color-primary)] rounded-2xl text-[var(--color-card-text)] font-semibold">
-            Doctor details have been successfully{" "}
-            {editingDoctorId ? "updated" : "added"}!
-          </div>
-        )}
       </form>
     </div>
   );

@@ -1,114 +1,127 @@
-import React, { useState, useMemo } from "react";
-import {
-  UserPlus,
-  Edit,
-  Trash2,
-  Stethoscope,
-  Search,
-  Calendar,
-} from "lucide-react";
-import { useEffect } from "react";
-import { getDoctorsByHospital } from "../../../api/auth";
+import React, { useState, useMemo, useEffect } from "react";
+import { UserPlus, Edit, Trash2, Stethoscope, Search, Calendar, X, CheckCircle, Filter, ArrowUpDown } from "lucide-react";
+import { getDoctorsByHospital, registerDoctor } from "../../../api/auth";
 import DoctorForm from "./DoctorForm";
-import { initialDoctorForm } from "../../../utils";
-import { doctorsData } from "../../../utils";
-import { registerDoctor } from "../../../api/auth";
+
+// Define initial state keys to prevent undefined errors
+const initialDoctorForm = {
+  name: "",
+  email: "",
+  password: "",
+  phone_no: "",
+  adhaar_no: "",
+  date_of_birth: "",
+  specialization: "",
+  npi_id: "",
+};
+
 const token = localStorage.getItem("token");
+
 const DoctorsSection = () => {
   const [doctors, setDoctors] = useState([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formData, setFormData] = useState(initialDoctorForm);
   const [editingDoctorId, setEditingDoctorId] = useState(null);
-
+  
+  // UI States
+  const [notification, setNotification] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSpecialization, setSelectedSpecialization] = useState("all");
   const [selectedHospital, setSelectedHospital] = useState("all");
   const [sortBy, setSortBy] = useState("name");
   const [sortOrder, setSortOrder] = useState("asc");
 
-  /* 🔹 LOAD DOCTORS FROM BACKEND */
+  const showToast = (msg) => {
+    setNotification(msg);
+    setTimeout(() => setNotification(null), 3000);
+  };
+
+  /* 🔹 LOAD & MAP DATA */
   useEffect(() => {
     async function loadDoctors() {
-      const res = await getDoctorsByHospital(token);
-      if (res?.status) {
-        setDoctors(
-          res.doctors.map((d) => ({
+      try {
+        const res = await getDoctorsByHospital(token);
+        if (res?.status) {
+          const mappedDoctors = res.doctors.map((d) => ({
             doctor_id: d.Doctor_Id__c,
-            name: d.Name,
-            email: d.Email__c,
-            npi_id: d.Hospital__c,
+            name: d.Name || "",
+            email: d.Email__c || "",
+            npi_id: d.Hospital__c || "", 
+            specialization: d.Specialization__c || "General",
+            phone_no: d.Phone__c || "",
+            adhaar_no: d.Adhaar_No__c || "",
+            date_of_birth: d.DOB__c || "",   
             created_at: d.CreatedDate,
-          }))
-        );
+          }));
+          setDoctors(mappedDoctors);
+        }
+      } catch (error) {
+        console.error("Error loading doctors:", error);
       }
     }
     loadDoctors();
   }, []);
 
-  /* 🔹 ADD / UPDATE */
-  const handleFormSubmit = async (e) => {
-    e.preventDefault();
+  /* 🔹 HANDLERS */
+  const handleAddNewClick = () => {
+    setFormData(initialDoctorForm);
+    setEditingDoctorId(null);
+    setIsFormOpen(true);
+  };
 
+  const handleEditClick = (doctor) => {
+    setFormData({
+      ...initialDoctorForm,
+      ...doctor,
+      password: "", 
+    });
+    setEditingDoctorId(doctor.doctor_id);
+    setIsFormOpen(true);
+  };
+
+  const handleFormSubmit = async (e) => {
     if (editingDoctorId) {
       setDoctors((prev) =>
         prev.map((doc) =>
-          doc.id === editingDoctorId ? { ...doc, ...formData } : doc
+          doc.doctor_id === editingDoctorId ? { ...doc, ...formData } : doc
         )
       );
-      setEditingDoctorId(null);
+      showToast("Doctor details updated successfully!");
     } else {
       const res = await registerDoctor(formData);
       if (res?.status) {
         setDoctors((prev) => [
           {
             ...formData,
-            doctor_id: formData.id,
+            doctor_id: res.id || Date.now().toString(),
             created_at: new Date().toISOString(),
           },
           ...prev,
         ]);
+        showToast("New doctor added successfully!");
       }
     }
-
-    setFormData(initialDoctorForm);
     setIsFormOpen(false);
   };
 
-  /* 🔹 EDIT */
-  const handleEditClick = (doctor) => {
-    setFormData(doctor);
-    setEditingDoctorId(doctor.doctor_id);
-    setIsFormOpen(true);
+  const handleDeleteClick = (id) => {
+    if (window.confirm("Are you sure you want to delete this doctor?")) {
+      setDoctors((prev) => prev.filter((doc) => doc.doctor_id !== id));
+      showToast("Doctor removed.");
+    }
   };
 
-  /* 🔹 DELETE (UI ONLY, API OPTIONAL) */
-  const handleDeleteClick = (doctorId) => {
-    setDoctors((prev) => prev.filter((doc) => doc.doctor_id !== doctorId));
-  };
-
-  const handleAddNewClick = () => {
-    setIsFormOpen(true);
-    setEditingDoctorId(null);
-    setFormData(initialDoctorForm);
-  };
-
-  const handleCancelForm = () => {
-    setIsFormOpen(false);
-    setFormData(initialDoctorForm);
-    setEditingDoctorId(null);
-  };
-
-  /* 🔹 FILTER + SORT */
+  /* 🔹 FILTER & SORT LOGIC */
   const filteredAndSortedDoctors = useMemo(() => {
     let filtered = doctors.filter((doc) => {
+      const searchLower = searchTerm.toLowerCase();
       const matchesSearch =
-        doc.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        doc.specialization?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        doc.email?.toLowerCase().includes(searchTerm.toLowerCase());
+        (doc.name?.toLowerCase() || "").includes(searchLower) ||
+        (doc.specialization?.toLowerCase() || "").includes(searchLower) ||
+        (doc.email?.toLowerCase() || "").includes(searchLower);
 
       const matchesSpecialization =
-        selectedSpecialization === "all" ||
-        doc.specialization === selectedSpecialization;
+        selectedSpecialization === "all" || doc.specialization === selectedSpecialization;
 
       const matchesHospital =
         selectedHospital === "all" || doc.npi_id === selectedHospital;
@@ -129,32 +142,26 @@ const DoctorsSection = () => {
     });
 
     return filtered;
-  }, [
-    doctors,
-    searchTerm,
-    selectedSpecialization,
-    selectedHospital,
-    sortBy,
-    sortOrder,
-  ]);
+  }, [doctors, searchTerm, selectedSpecialization, selectedHospital, sortBy, sortOrder]);
 
-  const specializations = [
-    "all",
-    ...new Set(doctors.map((d) => d.specialization).filter(Boolean)),
-  ];
-
-  const hospitals = [
-    "all",
-    ...new Set(doctors.map((d) => d.npi_id).filter(Boolean)),
-  ];
+  const specializations = ["all", ...new Set(doctors.map((d) => d.specialization).filter(Boolean))];
 
   return (
-    <div className="space-y-8 p-10 fade-in">
+    <div className="space-y-8 p-10 fade-in bg-gray-50 min-h-screen relative">
+      
+      {/* 🔔 TOP NOTIFICATION */}
+      {notification && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] animate-in slide-in-from-top duration-300">
+          <div className="bg-[#0b4f4a] text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 border border-white/20">
+            <CheckCircle className="h-5 w-5 text-teal-400" />
+            <span className="font-medium">{notification}</span>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <h2 className="text-3xl font-bold text-[var(--color-text)]">
-          Doctors List
-        </h2>
+        <h2 className="text-3xl font-bold text-[#0b4f4a]">Doctors List</h2>
         <button
           onClick={handleAddNewClick}
           className="bg-gradient-to-r from-[#0b4f4a] to-[#1a756f] text-white px-6 py-3 rounded-2xl font-medium flex items-center shadow-lg hover:scale-105 transition-transform duration-300"
@@ -164,135 +171,122 @@ const DoctorsSection = () => {
         </button>
       </div>
 
-      {/* Filters */}
-      <div className="bg-gradient-to-r from-[#0b4f4a] via-[#1a756f] to-[#2a9b94] rounded-2xl shadow-2xl p-8 mb-6 text-white h-50">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-10">
-          <div className="md:col-span-2 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white" />
-            <input
-              type="text"
-              placeholder="Search by name, email, specialty, hospital..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl placeholder-white/70 focus:ring-2 focus:ring-white/50 focus:border-white/50 text-white"
-            />
-          </div>
+      {/* 🔹 SIMPLIFIED SEARCH & FILTER SECTION */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-2 flex flex-col md:flex-row gap-2">
+        
+        {/* Search Input */}
+        <div className="relative flex-grow">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search doctors by name, email..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 bg-transparent rounded-xl focus:bg-gray-50 focus:ring-0 text-gray-700 outline-none placeholder-gray-400 transition-colors"
+          />
+        </div>
 
+        {/* Divider (Desktop only) */}
+        <div className="hidden md:block w-px bg-gray-200 my-2"></div>
+
+        {/* Specialization Filter */}
+        <div className="relative md:w-48">
+          <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
           <select
             value={selectedSpecialization}
             onChange={(e) => setSelectedSpecialization(e.target.value)}
-            className="px-3 py-3 bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl focus:ring-2 focus:ring-white/50 focus:border-white/50 text-black"
+            className="w-full pl-9 pr-8 py-2.5 bg-transparent rounded-xl focus:bg-gray-50 focus:ring-0 text-gray-600 outline-none appearance-none cursor-pointer"
           >
-            {specializations.map((spec) => (
-              <option key={spec} value={spec}>
-                {spec}
-              </option>
-            ))}
+            <option value="all">All Specialties</option>
+            {specializations.filter(s => s !== "all").map((spec) => <option key={spec} value={spec}>{spec}</option>)}
           </select>
+        </div>
 
-          <select
-            value={selectedHospital}
-            onChange={(e) => setSelectedHospital(e.target.value)}
-            className="px-3 py-3 bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl focus:ring-2 focus:ring-white/50 focus:border-white/50 text-black"
-          >
-            {hospitals.map((h) => (
-              <option key={h} value={h}>
-                {h}
-              </option>
-            ))}
-          </select>
+        {/* Divider (Desktop only) */}
+        <div className="hidden md:block w-px bg-gray-200 my-2"></div>
 
+        {/* Sort Select */}
+        <div className="relative md:w-48">
+          <ArrowUpDown className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
           <select
             value={`${sortBy}-${sortOrder}`}
             onChange={(e) => {
-              const [sort, order] = e.target.value.split("-");
-              setSortBy(sort);
-              setSortOrder(order);
+              const [s, o] = e.target.value.split("-");
+              setSortBy(s); setSortOrder(o);
             }}
-            className="px-3 py-3 bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl focus:ring-2 focus:ring-white/50 focus:border-white/50 text-black"
+            className="w-full pl-9 pr-4 py-2.5 bg-transparent rounded-xl focus:bg-gray-50 focus:ring-0 text-gray-600 outline-none appearance-none cursor-pointer"
           >
-            <option value="name-asc">Name A-Z</option>
-            <option value="name-desc">Name Z-A</option>
+            <option value="name-asc">Name (A-Z)</option>
             <option value="created_at-desc">Newest First</option>
             <option value="created_at-asc">Oldest First</option>
           </select>
         </div>
 
-        <div className="text-sm text-white/80 bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2 border border-white/20">
-          Showing {filteredAndSortedDoctors.length} of {doctors.length} doctors
+        {/* Result Count */}
+        <div className="flex items-center px-4 py-2 bg-gray-100 rounded-xl text-xs font-bold text-gray-500 whitespace-nowrap">
+           {filteredAndSortedDoctors.length} found
         </div>
       </div>
 
-      {/* Doctor Form */}
+      {/* 🏥 POP-UP MODAL */}
       {isFormOpen && (
-        <DoctorForm
-          formData={formData}
-          setFormData={setFormData}
-          onSubmit={handleFormSubmit}
-          onCancel={handleCancelForm}
-          editingDoctorId={editingDoctorId}
-        />
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setIsFormOpen(false)} />
+          <div className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto bg-white rounded-3xl shadow-2xl animate-in zoom-in duration-200">
+            <button 
+              onClick={() => setIsFormOpen(false)} 
+              className="absolute top-6 right-6 p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors z-10"
+            >
+              <X className="w-6 h-6 text-gray-500" />
+            </button>
+            
+            {/* PASSING DATA TO FORM */}
+            <DoctorForm
+              formData={formData}
+              setFormData={setFormData}
+              onSubmit={handleFormSubmit}
+              onCancel={() => setIsFormOpen(false)}
+              editingDoctorId={editingDoctorId}
+            />
+          </div>
+        </div>
       )}
 
-      {/* Doctor Cards */}
+      {/* Cards Grid - SAME DESIGN AS PREVIOUS */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredAndSortedDoctors?.map((doctor, index) => (
+        {filteredAndSortedDoctors.map((doctor, index) => (
           <div
             key={index}
-            className="bg-[var(--color-card-bg)] rounded-3xl p-6 shadow-[0_4px_15px_rgba(0,0,0,0.08)] border-[var(--color-border)] hover:scale-105 transition-transform duration-300"
+            className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 hover:shadow-lg hover:scale-105 transition-transform duration-300"
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-semibold text-[var(--color-card-text)]">
-                {doctor.name}
-              </h3>
+              <h3 className="text-xl font-bold text-gray-800">{doctor.name}</h3>
               <div className="flex gap-2">
-                <button
-                  onClick={() => handleEditClick(doctor)}
-                  className="text-indigo-600 hover:text-indigo-900"
-                >
-                  <Edit className="h-5 w-5" />
-                </button>
-                <button
-                  onClick={() => handleDeleteClick(doctor.doctor_id)}
-                  className="text-red-600 hover:text-red-900"
-                >
-                  <Trash2 className="h-5 w-5" />
-                </button>
+                <button onClick={() => handleEditClick(doctor)} className="text-indigo-600 p-2 hover:bg-indigo-50 rounded-lg"><Edit className="h-5 w-5" /></button>
+                <button onClick={() => handleDeleteClick(doctor.doctor_id)} className="text-red-600 p-2 hover:bg-red-50 rounded-lg"><Trash2 className="h-5 w-5" /></button>
               </div>
             </div>
-            <p className="text-sm text-gray-500 mb-1">
-              <strong>Email:</strong> {doctor.email}
-            </p>
-            <p className="text-sm text-gray-500 mb-1">
-              <strong>Specialty:</strong> {doctor.specialization}
-            </p>
-            <p className="text-sm text-gray-500 mb-1">
-              <strong>Contact:</strong> {doctor.phone_no}
-            </p>
-            <p className="text-sm text-gray-500 flex items-center gap-2">
-              <Stethoscope className="h-4 w-4 text-[#0b4f4a]" />
-              <span>
-                <strong>Hospital NPI:</strong> {doctor.npi_id}
-              </span>
-            </p>
-            <p className="text-sm text-gray-400 mt-2 flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              <span>
+            
+            <div className="space-y-2 text-sm text-gray-500">
+              <p><strong>Email:</strong> {doctor.email}</p>
+              <p><strong>Specialty:</strong> {doctor.specialization}</p>
+              <p><strong>Phone:</strong> {doctor.phone_no}</p>
+              <p className="flex items-center gap-2 mt-2">
+                <Stethoscope className="h-4 w-4 text-teal-600" />
+                <span><strong>NPI:</strong> {doctor.npi_id}</span>
+              </p>
+              <p className="flex items-center gap-2 text-gray-400 text-xs">
+                <Calendar className="h-3 w-3" />
                 Joined: {new Date(doctor.created_at).toLocaleDateString()}
-              </span>
-            </p>
+              </p>
+            </div>
           </div>
         ))}
 
         {filteredAndSortedDoctors.length === 0 && (
-          <div className="col-span-full text-center text-gray-400 p-12 border border-gray-100 rounded-2xl">
-            <Search className="h-16 w-16 mx-auto mb-4" />
-            <h3 className="text-xl font-medium text-gray-900 mb-2">
-              No doctors found
-            </h3>
-            <p>
-              Try adjusting your search criteria or filters to find doctors.
-            </p>
+          <div className="col-span-full text-center py-10 text-gray-400">
+            <Search className="h-12 w-12 mx-auto mb-2 opacity-50" />
+            <p>No doctors found matching your filters.</p>
           </div>
         )}
       </div>
