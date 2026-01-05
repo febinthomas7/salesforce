@@ -26,7 +26,7 @@ const Dashboard = () => {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between ">
           <div>
             <h1 className="text-3xl font-bold mb-2">
-              Welcome back, {mockPatient.name}!
+              Welcome back, {localStorage.getItem("patientName")}!
             </h1>
             <p className="text-stone-100">
               Your complete medical history at a glance

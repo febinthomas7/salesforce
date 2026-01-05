@@ -19,7 +19,7 @@ export async function handler(event) {
     const { access_token, instance_url } = await getSfAccessToken();
 
     // 2. QUERY SALESFORCE
-    const soql = `SELECT  NPI_Id__c, Password_Hash__c , id  FROM Hospital__c WHERE Npi_Id__c='${npi_id}' LIMIT 1`;
+    const soql = `SELECT  NPI_Id__c, Password_Hash__c , Name, Email__c, id  FROM Hospital__c WHERE Npi_Id__c='${npi_id}' LIMIT 1`;
 
     const qRes = await fetch(
       `${instance_url}/services/data/v57.0/query?q=${encodeURIComponent(soql)}`,
@@ -45,15 +45,14 @@ export async function handler(event) {
         body: JSON.stringify({ error: "Invalid credentials" }),
       };
     }
-    console.log("Hospital authenticated:", {
+
+    console.log({
       id: record.Id,
       name: record.Name,
       email: record.Email__c,
       npiId: record.NPI_id__c,
-      hospital_id: record.id,
-      hospital: record.Hospital__c,
+      hospital_id: record.Id,
     });
-
     // 4. GENERATE JWT
     const token = jwt.sign(
       {
@@ -67,7 +66,10 @@ export async function handler(event) {
       { expiresIn: "7d" }
     );
 
-    return { statusCode: 200, body: JSON.stringify({ status: true, token }) };
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ status: true, token, name: record.Name }),
+    };
   } catch (err) {
     return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
   }

@@ -25,6 +25,7 @@ export default function Login() {
       if (data.status === true) {
         // Save JWT token in localStorage
         localStorage.setItem("token", data.token);
+        localStorage.setItem("hospitalName", data.name);
         localStorage.setItem("role", "hospital");
 
         setMessage({ text: "Login successful!", type: "success" });
