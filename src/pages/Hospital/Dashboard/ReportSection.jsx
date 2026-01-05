@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { formatDate } from "../../../utils";
 import {
   FileText,
@@ -10,23 +10,46 @@ import {
   Tag,
   Clock,
 } from "lucide-react";
-import { doctorsData, reportsData } from "../../../utils";
+import { getReportsByHospital } from "../../../api/auth";
+const token = localStorage.getItem("token");
 
 const ReportsSection = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedPriority, setSelectedPriority] = useState("all");
   const [sortBy, setSortBy] = useState("date");
-  const [doctors, setDoctors] = useState(doctorsData);
-
+  const [reports, setReports] = useState([]);
   const [sortOrder, setSortOrder] = useState("desc");
-  const reports = reportsData;
+  useEffect(() => {
+    async function loadReports() {
+      const res = await getReportsByHospital(token); // calls Netlify function
+      if (res?.status) {
+        setReports(
+          res.reports.map((r) => ({
+            report_id: r.Id,
+            title: r.Title__c,
+            category: r.Category__c,
+            description: r.Notes__c,
+            fileUrl: r.URL__c,
+            date_of_issue: r.Date_of_issue__c,
+            priority: r.Priority__c || "Medium",
+            status: "Completed",
+            patient_name: r.Patient__r.Name,
+            doctorName: r.Doctor__r.Name,
+            npi_id: r.Hospital__r.NPI_id__c,
+          }))
+        );
+      }
+    }
+
+    loadReports();
+  }, []);
 
   const categories = [
     { value: "all", label: "All Categories" },
     { value: "Lab Test", label: "Lab Tests" },
     { value: "Imaging", label: "Imaging" },
-    { value: "Prescription", label: "Prescriptions" },
+    { value: "prescription", label: "Prescriptions" },
     { value: "Consultation", label: "Consultations" },
     { value: "Surgery", label: "Surgery" },
     { value: "Vaccination", label: "Vaccinations" },
@@ -42,30 +65,20 @@ const ReportsSection = () => {
 
   // Filter and sort reports
   const filteredAndSortedReports = useMemo(() => {
-    let filtered = reports
-      .map((report) => {
-        const doctor = doctors.find((d) => d.id === report.doctor_id);
-        return {
-          ...report,
-          doctorName: doctor ? doctor.name : `Doctor #${report.doctor_id}`,
-        };
-      })
-      .filter((report) => {
-        const matchesSearch =
-          report.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (report.description || "")
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
-          report.doctorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          report.npi_id.toLowerCase().includes(searchTerm.toLowerCase());
+    let filtered = reports.filter((report) => {
+      const matchesSearch =
+        report.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (report.description || "")
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        report.doctorName.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory =
+        selectedCategory === "all" || report.category === selectedCategory;
+      const matchesPriority =
+        selectedPriority === "all" || report.priority === selectedPriority;
 
-        const matchesCategory =
-          selectedCategory === "all" || report.category === selectedCategory;
-        const matchesPriority =
-          selectedPriority === "all" || report.priority === selectedPriority;
-
-        return matchesSearch && matchesCategory && matchesPriority;
-      });
+      return matchesSearch && matchesCategory && matchesPriority;
+    });
 
     // Sort
     filtered.sort((a, b) => {
@@ -87,7 +100,6 @@ const ReportsSection = () => {
     return filtered;
   }, [
     reports,
-    doctors,
     searchTerm,
     selectedCategory,
     selectedPriority,
@@ -128,7 +140,7 @@ const ReportsSection = () => {
         return "📄";
     }
   };
-
+  console.log("Rendered reports:", filteredAndSortedReports);
   return (
     <div className=" w-full space-y-8 p-10 fade-in">
       {/* Header */}
@@ -206,9 +218,9 @@ const ReportsSection = () => {
 
       {/* Reports Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredAndSortedReports.map((report) => (
+        {filteredAndSortedReports?.map((report, index) => (
           <div
-            key={report.report_id}
+            key={index}
             className="bg-[var(--color-card-bg)] rounded-3xl p-6 shadow-[0_4px_15px_rgba(0,0,0,0.08)] border-[var(--color-border)] hover:scale-105 transition-transform duration-300"
           >
             <div className="flex items-center justify-between mb-4">
@@ -219,7 +231,7 @@ const ReportsSection = () => {
             </div>
 
             <p className="text-sm text-gray-500 mb-1">
-              <strong>Patient:</strong> {report.patient_adhaar}
+              <strong>Patient:</strong> {report.patient_name}
             </p>
             <p className="text-sm text-gray-500 mb-1">
               <strong>Assigned by:</strong> {report.doctorName}

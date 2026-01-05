@@ -44,6 +44,14 @@ export const getDoctorsByHospital = async (token) => {
   return res.data;
 };
 
+export const getReportsByHospital = async (token) => {
+  const res = await api.get("/.netlify/functions/getReportsByHospital", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return res.data;
+};
 
 export const getPartners = async () => {
   const res = await api.get("/.netlify/functions/getPartners");
