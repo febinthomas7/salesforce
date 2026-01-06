@@ -1,16 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 // Assuming other necessary imports are here (Link, Icons, etc.)
 
 import { LogOut, User } from "lucide-react";
+import { MoonIcon, SunIcon } from "@heroicons/react/24/outline";
 
 function Sidebar({ navigation, toggleSidebar, isCollapsed, name }) {
   // 1. State to manage the sidebar's collapsed state
   //   const [isCollapsed, setIsCollapsed] = useState(false);
   const location = useLocation();
+  const [theme, setTheme] = useState(localStorage.getItem("theme") || "");
 
   // 2. Function to toggle the state
-
+  name = localStorage.getItem("hospitalName");
   const Logout = () => {
     // Clear user data from localStorage
     localStorage.removeItem("token");
@@ -21,6 +23,16 @@ function Sidebar({ navigation, toggleSidebar, isCollapsed, name }) {
       window.location.href = "/";
     }, 500);
   };
+
+  const toggleTheme = () => {
+    setTheme(theme === "theme-dark" ? "" : "theme-dark");
+  };
+
+  // Apply theme globally
+  useEffect(() => {
+    document.documentElement.className = theme;
+    localStorage.setItem("theme", theme);
+  }, [theme]);
 
   // Define Tailwind classes based on the state
   const sidebarWidthClass = isCollapsed ? "w-0 sm:lg:w-20" : "lg:w-64";
@@ -34,13 +46,13 @@ function Sidebar({ navigation, toggleSidebar, isCollapsed, name }) {
     >
       <div className="flex flex-col flex-grow bg-[var(--color-bg-2)] border-r border-gray-200 shadow-sm">
         {/* Header/Logo Section */}
-        <div className="flex h-16 items-center px-4 border-b border-gray-200 justify-between">
-          <div className="flex items-center space-x-3">
+        <div className="flex h-20 items-center px-4 border-b border-gray-200 justify-between">
+          <div className="flex items-center ">
             <div className={`${logoTextVisibility}`}>
-              <img src="/logo.png" className="h-10 w-9" alt="MedLock Logo" />
+              <img src="/logo.png" className="h-15 w-15" alt="MedLock Logo" />
             </div>
             <h1
-              className={`text-xl font-bold text-[var(--text-color)] ${logoTextVisibility} transition-opacity duration-300`}
+              className={`text-2xl font-bold text-[var(--text-color)] ${logoTextVisibility} transition-opacity duration-300`}
             >
               Medlock
             </h1>
@@ -114,9 +126,35 @@ function Sidebar({ navigation, toggleSidebar, isCollapsed, name }) {
         </nav>
 
         {/* User info / Theme Toggle / Logout */}
-        <div className="border-t border-gray-200 p-4">
+        <div className="">
           <div
-            className={`flex items-center ${
+            className={`flex items-center  p-2  ${
+              isCollapsed ? "justify-center" : ""
+            }`}
+          >
+            {/* Logout Button */}
+            <button
+              onClick={toggleTheme}
+              className={`text-[var(--icon-color)] flex gap-2 justify-center items-center cursor-pointer hover:text-[var(--icon-hover-color)] transition-colors ${
+                isCollapsed ? "" : "ml-2"
+              }`}
+              title="theme toggle"
+            >
+              {theme === "theme-dark" ? (
+                <SunIcon className="h-5 w-5 text-[#0b4f4a] " />
+              ) : (
+                <MoonIcon className="h-5 w-5 text-[#0b4f4a] " />
+              )}
+
+              <span
+                className={`${navItemTextVisibility} transition-opacity duration-300`}
+              >
+                Theme
+              </span>
+            </button>
+          </div>
+          <div
+            className={`flex items-center border-t p-2 border-gray-200 ${
               isCollapsed ? "justify-center" : ""
             }`}
           >

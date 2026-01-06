@@ -36,7 +36,7 @@ const Layout = ({ children, navigation, name }) => {
       {/* Main content */}
       <div className="w-full h-full flex flex-col overflow-auto ">
         {/*  header */}
-        <div className="sticky top-0 z-40 flex h-16 py-2 items-center gap-x-4 border-b justify-between border-gray-200 bg-[var(--color-bg)] px-4 shadow-sm ">
+        <div className="sticky top-0 z-40 flex h-20 py-6 items-center gap-x-4 border-b justify-between border-gray-200 bg-[var(--color-bg)] px-4 shadow-sm ">
           <div className=" hidden sm:flex items-center gap-2 ">
             <Users className="h-6 w-6 text-[#0b4f4a]" />
             <h1 className="text-lg  text-[#0b4f4a]">{name}</h1>
@@ -55,17 +55,7 @@ const Layout = ({ children, navigation, name }) => {
             <div className="bg-[#d1e8e5] hidden sm:flex p-3 rounded-full border border-transparent">
               <User className="h-6 w-6 text-[#0b4f4a]" />
             </div>
-            <button
-              onClick={toggleTheme}
-              className=" rounded-xl cursor-pointer p-2  text-white flex items-center justify-center transition-colors duration-200"
-            >
-              {" "}
-              {theme === "theme-dark" ? (
-                <SunIcon className="h-8 w-8 text-[#0b4f4a] " />
-              ) : (
-                <MoonIcon className="h-8 w-8 text-[#0b4f4a] " />
-              )}
-            </button>
+
             <button
               onClick={toggleSidebar}
               className=" rounded-xl cursor-pointer p-2  text-white flex  sm:hidden items-center justify-center transition-colors duration-200"
