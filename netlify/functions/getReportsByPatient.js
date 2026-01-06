@@ -4,20 +4,23 @@ import { getSfAccessToken } from "./getToken";
 export async function handler(event) {
   try {
     // 1️⃣ AUTH HEADER CHECK
-    const authHeader = event.headers.authorization;
-    if (!authHeader) {
+    const authHeader =
+      event.headers.authorization || event.headers.Authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return {
         statusCode: 401,
         body: JSON.stringify({ error: "Authorization token missing" }),
       };
     }
 
-    const token = authHeader.replace("Bearer ", "");
+    // ✅ Correct token extraction
+    const token = authHeader.split(" ")[1];
 
     // 2️⃣ VERIFY JWT
     let decoded;
     try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET || "devsecret");
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
     } catch {
       return {
         statusCode: 401,
@@ -25,32 +28,35 @@ export async function handler(event) {
       };
     }
 
-    if (!decoded.doctor_id) {
+    // 3️⃣ ENSURE PATIENT TOKEN
+    if (!decoded.id) {
       return {
         statusCode: 403,
-        body: JSON.stringify({ error: "Not a doctor token" }),
+        body: JSON.stringify({ error: "Patient access only" }),
       };
     }
 
-    // 3️⃣ GET SALESFORCE TOKEN
+    console.log("Decoded JWT:", decoded);
+    // 4️⃣ SALESFORCE TOKEN
     const { access_token, instance_url } = await getSfAccessToken();
 
-    // 4️⃣ QUERY DOCTOR
+    // 5️⃣ QUERY REPORTS CREATED BY THIS DOCTOR
     const soql = `
       SELECT
         Id,
         Name,
-        Email__c,
-        Phone_Number__c,
-        Aadhaar_No__c,
-        Date_of_Birth__c,
-        Specialization__c,
-        Doctor_Id__c,
-        Hospital__c,
-        Profile_Image_URL__c
-      FROM Doctor__c
-      WHERE Doctor_Id__c='${decoded.doctor_id.replace(/'/g, "\\'")}'
-      LIMIT 1
+        Notes__c,
+        URL__c,
+        Category__c,
+        Title__c,
+        Date_of_expire__c,
+        Date_of_issue__c,
+        Patient__r.Name,
+        Doctor__r.Name,
+        Hospital__r.Name
+      FROM Patient_Report__c
+      WHERE Patient__c = '${decoded.id}'
+      ORDER BY CreatedDate DESC
     `;
 
     const res = await fetch(
@@ -63,24 +69,18 @@ export async function handler(event) {
     );
 
     const data = await res.json();
+    console.log("Fetched reports:", data);
 
-    if (!data.records || data.records.length === 0) {
-      return {
-        statusCode: 404,
-        body: JSON.stringify({ error: "Doctor not found" }),
-      };
-    }
-
-    // 5️⃣ RETURN DOCTOR DATA
     return {
       statusCode: 200,
       body: JSON.stringify({
         status: true,
-        doctor: data.records[0],
+        count: data.totalSize,
+        reports: data.records || [],
       }),
     };
   } catch (err) {
-    console.error("Get doctor error:", err);
+    console.error("Get reports error:", err);
     return {
       statusCode: 500,
       body: JSON.stringify({ error: err.message }),

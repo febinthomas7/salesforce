@@ -43,7 +43,9 @@ const Header = ({
                     />
                   </div>
                   <div>
-                    <h1 className="text-3xl font-bold text-[#0b4f4a]">MedLock</h1>
+                    <h1 className="text-3xl font-bold text-[#0b4f4a]">
+                      MedLock
+                    </h1>
                     <p className="text-sm text-[#0b4f4a]">Doctor's Portal</p>
                   </div>
                 </div>
@@ -155,7 +157,9 @@ const Header = ({
                     />
                   </div>
                   <div>
-                    <h1 className="text-3xl font-bold text-[#0b4f4a]">MedLock</h1>
+                    <h1 className="text-3xl font-bold text-[#0b4f4a]">
+                      MedLock
+                    </h1>
                     <p className="text-sm text-[#0b4f4a]">Patient's Portal</p>
                   </div>
                 </div>

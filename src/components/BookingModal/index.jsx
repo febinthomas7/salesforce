@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   X,
   CheckCircle,
@@ -22,6 +22,8 @@ import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 // import { Hospital, BookingFormData, BookingReceipt } from '../types';
 import { timeSlots, mockPatient } from "../../utils/constants";
+import { createOpdTicket } from "../../api/auth";
+const token = localStorage.getItem("token");
 
 const BookingModal = ({ hospital, onClose }) => {
   const [step, setStep] = useState(1); // 1: Details, 2: Simulating Connection, 3: Success
@@ -43,12 +45,32 @@ const BookingModal = ({ hospital, onClose }) => {
   const [copied, setCopied] = useState(false);
 
   const receiptRef = useRef(null);
-
+  const specialties = [
+    "Cardiology",
+    "Neurology",
+    "Oncology",
+    "General Surgery",
+    "Nephrology",
+  ];
+  // useEffect(async () => {
+  //   try {
+  //     const res = await createOpdTicket(
+  //       token,
+  //       hospital.Id,
+  //       formData.slot,
+  //       formData.department,
+  //       hospital.Name
+  //     );
+  //     console.log("Create OPD Ticket Response:", res);
+  //   } catch (error) {
+  //     console.error("Error creating OPD ticket:", error);
+  //   }
+  // }, []);
   const handleBook = () => {
     setStep(2);
 
     const runSimulation = async () => {
-      setLoadingStatus(`Establishing secure connection to ${hospital.name}...`);
+      setLoadingStatus(`Establishing secure connection to ${hospital.Name}...`);
       await new Promise((r) => setTimeout(r, 1000));
 
       setLoadingStatus(`Verifying availability for ${formData.slot}...`);
@@ -57,18 +79,28 @@ const BookingModal = ({ hospital, onClose }) => {
       setLoadingStatus("Generating Official OPD Ticket...");
       await new Promise((r) => setTimeout(r, 800));
 
+      const res = await createOpdTicket(
+        token,
+        hospital.Id,
+        formData.slot,
+        formData.department,
+        hospital.Name
+      );
+      console.log("Create OPD Ticket Response:", res);
+
       // Generate "Official" ID
       const randomNum = Math.floor(100000 + Math.random() * 900000);
-      const officialId = `${hospital.idPrefix}-${randomNum}`;
+      const officialId = `${hospital.Name}-${randomNum}`;
 
       setBookingDetails({
         ...formData,
         id: officialId,
         timestamp: new Date().toLocaleString(),
-        hospitalName: hospital.name,
-        hospitalLocation: hospital.location,
-        hospitalDistrict: hospital.district,
-        hospitalState: hospital.state,
+        hospitalName: hospital.Name,
+        hospitalLocation: hospital.Address__c,
+        hospitalDistrict: hospital.District__r.Name,
+        hospitalState: hospital.State__r.Name,
+        patientName: localStorage.getItem("dashboardName"),
       });
       setStep(3);
     };
@@ -407,7 +439,7 @@ const BookingModal = ({ hospital, onClose }) => {
               </span>
             </div>
             <h2 className="text-2xl font-bold flex items-center">
-              {hospital.name}
+              {hospital.Name}
             </h2>
             <p className="text-teal-100 text-sm mt-1 flex items-center opacity-90">
               <Building className="w-4 h-4 mr-1.5" />
@@ -439,7 +471,7 @@ const BookingModal = ({ hospital, onClose }) => {
                   }
                 >
                   <option value="">Choose Specialty...</option>
-                  {hospital.specialties.map((s) => (
+                  {specialties.map((s) => (
                     <option key={s} value={s}>
                       {s}
                     </option>

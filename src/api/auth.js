@@ -53,6 +53,49 @@ export const getReportsByHospital = async (token) => {
   return res.data;
 };
 
+export const getReportsByPatient = async (token) => {
+  const res = await api.get("/.netlify/functions/getReportsByPatient", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return res.data;
+};
+
+export const hospitalSearch = async (
+  token,
+  selectedState,
+  selectedDistrict,
+  debouncedSearch
+) => {
+  const res = await api.get(
+    `/.netlify/functions/hospitalSearch?state=${selectedState}&district=${selectedDistrict}&search=${debouncedSearch}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+  return res.data;
+};
+
+export const createOpdTicket = async (
+  token,
+  Id,
+  slot,
+  department,
+  hospitalName
+) => {
+  const res = await api.post(
+    `/.netlify/functions/createOpdTicket?hospitalId=${Id}&slot=${slot}&department=${department}&hospitalName=${hospitalName}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+  return res.data;
+};
 export const getPartners = async () => {
   const res = await api.get("/.netlify/functions/getPartners");
   return res.data;

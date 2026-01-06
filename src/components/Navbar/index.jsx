@@ -52,14 +52,14 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="w-full bg-[var(--color-bg)] shadow-[var(--color-shadow)] z-50 relative">
+    <nav className="w-full bg-[var(--color-bg)] sticky shadow-[var(--color-shadow)] z-50 top-0">
       <div className="w-full mx-auto px-6 py-4 flex items-center justify-between bg-[var(--color-bg)]">
         <Link
           to="/"
           className="flex items-center space-x-2"
           onClick={isMenuOpen ? toggleMenu : undefined}
         >
-          <div className="flex items-center space-x-3 ">
+          <div className="flex items-center ">
             <div className="h-25 w-23 flex items-center justify-center">
               <img
                 src={theme == "theme-dark" ? "/home-logo.png" : "/logo.png"}

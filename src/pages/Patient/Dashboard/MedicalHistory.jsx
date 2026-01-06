@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Search,
   Filter,
@@ -54,6 +54,8 @@ const getPriorityColor = (priority) => {
   }
 };
 import { mockPatient, mockReports } from "../../../utils";
+const token = localStorage.getItem("token");
+import { getReportsByPatient } from "../../../api/auth";
 
 // Component now receives the reports array via props
 const MedicalHistory = () => {
@@ -63,6 +65,7 @@ const MedicalHistory = () => {
   const [selectedPriority, setSelectedPriority] = useState("all");
   const [sortBy, setSortBy] = useState("date");
   const [sortOrder, setSortOrder] = useState("asc");
+  const [reports, setReports] = useState([]);
 
   // Define categories and priorities for the filter options
   const categories = [
@@ -83,18 +86,37 @@ const MedicalHistory = () => {
     { value: "medium", label: "Medium" },
     { value: "low", label: "Low" },
   ];
+  useEffect(() => {
+    async function loadReports() {
+      try {
+        const res = await getReportsByPatient(token);
+        if (res?.status) {
+          // setDoctors(mappedDoctors);
+          console.log("Loaded reports:", res.reports);
+          setReports(res.reports);
+        }
+      } catch (error) {
+        console.error("Error loading reports:", error);
+      }
+    }
+    loadReports();
+  }, []);
 
   // Use useMemo to filter and sort reports efficiently
   const filteredAndSortedReports = useMemo(() => {
-    let filtered = mockReports.filter((report) => {
+    let filtered = reports?.filter((report) => {
       const matchesSearch =
-        report.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        report.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        report.doctorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        report.hospital.toLowerCase().includes(searchTerm.toLowerCase());
+        report.Category__c.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        // report.Notes__c.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        report.Doctor__r.Name.toLowerCase().includes(
+          searchTerm.toLowerCase()
+        ) ||
+        report.Hospital__r.Name.toLowerCase().includes(
+          searchTerm.toLowerCase()
+        );
 
       const matchesCategory =
-        selectedCategory === "all" || report.category === selectedCategory;
+        selectedCategory === "all" || report.Category__c === selectedCategory;
       const matchesPriority =
         selectedPriority === "all" || report.priority === selectedPriority;
 
@@ -104,23 +126,16 @@ const MedicalHistory = () => {
     // Sort reports based on selected criteria
     filtered.sort((a, b) => {
       if (sortBy === "date") {
-        const dateA = new Date(a.date).getTime();
-        const dateB = new Date(b.date).getTime();
+        const dateA = new Date(a.Date_of_issue__c).getTime();
+        const dateB = new Date(b.Date_of_issue__c).getTime();
         return sortOrder === "desc" ? dateB - dateA : dateA - dateB;
-      } else if (sortBy === "priority") {
-        const priorityOrder = { critical: 4, high: 3, medium: 2, low: 1 };
-        const priorityA = priorityOrder[a.priority];
-        const priorityB = priorityOrder[b.priority];
-        return sortOrder === "desc"
-          ? priorityB - priorityA
-          : priorityA - priorityB;
       }
       return 0;
     });
 
     return filtered;
   }, [
-    mockReports, // reports comes from props
+    reports, // reports comes from props
     searchTerm,
     selectedCategory,
     selectedPriority,
@@ -212,34 +227,34 @@ const MedicalHistory = () => {
 
       {/* Reports List */}
       <div className="space-y-4">
-        {filteredAndSortedReports.map((report) => (
+        {filteredAndSortedReports.map((report, index) => (
           <div
-            key={report.id}
+            key={index}
             className="bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] border border-gray-100"
           >
             <div className="p-6">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-start space-x-4">
                   <div className="text-4xl bg-gradient-to-br from-[#E1F3F1] to-[#F1F9F8] p-3 rounded-xl border border-[#D5E6E4]">
-                    {getCategoryIcon(report.category)}
+                    {getCategoryIcon(report.Category__c)}
                   </div>
                   <div className="flex-1">
                     <h3 className="text-xl font-bold text-gray-900 mb-2">
-                      {report.title}
+                      {report.Title__c}
                     </h3>
-                    <p className="text-gray-600 mb-3">{report.description}</p>
+                    <p className="text-gray-600 mb-3">{report.Notes__c}</p>
 
                     <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-3">
                       <div className="flex items-center">
                         <Calendar className="h-4 w-4 mr-1" />
-                        {formatDate(report.date)}
+                        {formatDate(report.Date_of_issue__c)}
                       </div>
-                      <div>👨‍⚕️ Dr. {report.doctorName}</div>
-                      <div>🏥 {report.hospital}</div>
+                      <div>👨‍⚕️ Dr. {report.Doctor__r.Name}</div>
+                      <div>🏥 {report.Hospital__r.Name}</div>
                     </div>
 
                     {/* Tags */}
-                    {report.tags.length > 0 && (
+                    {/* {report.tags.length > 0 && (
                       <div className="flex flex-wrap gap-2 mb-3">
                         {report.tags.map((tag, index) => (
                           <span
@@ -251,20 +266,20 @@ const MedicalHistory = () => {
                           </span>
                         ))}
                       </div>
-                    )}
+                    )} */}
                   </div>
                 </div>
 
                 <div className="flex flex-col items-end space-y-2">
-                  <span
+                  {/* <span
                     className={`px-3 py-1 rounded-full text-xs font-medium border ${getPriorityColor(
                       report.priority
                     )}`}
                   >
                     {report.priority.toUpperCase()}
-                  </span>
+                  </span> */}
                   <span className="text-xs px-3 py-1 bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 rounded-full capitalize font-medium">
-                    {report.category}
+                    {report.Category__c}
                   </span>
                 </div>
               </div>
@@ -273,7 +288,9 @@ const MedicalHistory = () => {
               <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                 <div className="flex items-center space-x-2 text-xs text-gray-500">
                   <Clock className="h-3 w-3" />
-                  <span>Last updated: {formatDate(report.date)}</span>
+                  <span>
+                    Last updated: {formatDate(report.Date_of_issue__c)}
+                  </span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <button className="text-[#6B9691] hover:text-[#58807C] p-2 rounded-xl hover:bg-[#F1F9F8] transition-all duration-200">

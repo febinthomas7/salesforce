@@ -11,8 +11,8 @@ const HospitalCard = ({ hospital, onBook }) => (
     {/* Image Container */}
     <div className="relative h-48 overflow-hidden bg-gray-100">
       <img
-        src={hospital.image}
-        alt={hospital.name}
+        src={hospital?.Image__c}
+        alt={hospital?.Name}
         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-in-out"
       />
 
@@ -30,7 +30,7 @@ const HospitalCard = ({ hospital, onBook }) => (
       <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-md px-2 py-1 rounded-lg flex items-center gap-1 shadow-sm">
         <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
         <span className="text-xs font-bold text-gray-800">
-          {hospital.rating}
+          {hospital?.rating}
         </span>
       </div>
 
@@ -38,7 +38,7 @@ const HospitalCard = ({ hospital, onBook }) => (
       <div className="absolute bottom-3 left-3 right-3">
         <div className="flex items-center text-white/90 text-xs font-medium truncate">
           <MapPin className="w-3.5 h-3.5 mr-1.5 text-teal-300 flex-shrink-0" />
-          {hospital.district}, {hospital.state}
+          {hospital?.District__r?.Name}, {hospital?.State__r?.Name}
         </div>
       </div>
     </div>
@@ -46,14 +46,14 @@ const HospitalCard = ({ hospital, onBook }) => (
     {/* Content */}
     <div className="p-5 flex-1 flex flex-col">
       <h3 className="text-lg font-bold text-gray-900 mb-1 line-clamp-2 leading-snug group-hover:text-teal-700 transition-colors">
-        {hospital.name}
+        {hospital.Name}
       </h3>
       <p className="text-xs text-gray-500 mb-4 line-clamp-1 flex items-center">
-        {hospital.location}
+        {hospital.Address__c}
       </p>
 
       {/* Specialties */}
-      <div className="flex flex-wrap gap-1.5 mb-6">
+      {/* <div className="flex flex-wrap gap-1.5 mb-6">
         {hospital.specialties.slice(0, 3).map((spec, index) => (
           <span
             key={index}
@@ -67,7 +67,7 @@ const HospitalCard = ({ hospital, onBook }) => (
             +{hospital.specialties.length - 3}
           </span>
         )}
-      </div>
+      </div> */}
 
       {/* Footer */}
       <div className="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between gap-3">

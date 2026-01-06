@@ -6,17 +6,16 @@ import { LogOut, User } from "lucide-react";
 import { MoonIcon, SunIcon } from "@heroicons/react/24/outline";
 
 function Sidebar({ navigation, toggleSidebar, isCollapsed, name }) {
-  // 1. State to manage the sidebar's collapsed state
-  //   const [isCollapsed, setIsCollapsed] = useState(false);
   const location = useLocation();
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "");
 
   // 2. Function to toggle the state
-  name = localStorage.getItem("hospitalName");
+  name = localStorage.getItem("dashboardName");
   const Logout = () => {
     // Clear user data from localStorage
     localStorage.removeItem("token");
     localStorage.removeItem("role");
+    localStorage.removeItem("dashboardName");
 
     // Redirect to login page
     setTimeout(() => {
