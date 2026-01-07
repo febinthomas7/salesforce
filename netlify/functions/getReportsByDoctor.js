@@ -3,17 +3,18 @@ import { getSfAccessToken } from "./getToken";
 
 export async function handler(event) {
   try {
-    // 1️⃣ AUTH CHECK
+    // 1️⃣ AUTH HEADER CHECK
     const authHeader =
       event.headers.authorization || event.headers.Authorization;
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return {
         statusCode: 401,
-        body: JSON.stringify({ error: "Invalid authorization format" }),
+        body: JSON.stringify({ error: "Authorization token missing" }),
       };
     }
 
+    // ✅ Correct token extraction
     const token = authHeader.split(" ")[1];
 
     // 2️⃣ VERIFY JWT
@@ -26,32 +27,36 @@ export async function handler(event) {
         body: JSON.stringify({ error: "Invalid token" }),
       };
     }
+    console.log("Decoded JWT in getReportsByDoctor:", decoded);
 
-    // 3️⃣ ENSURE HOSPITAL TOKEN
-    if (!decoded.hospital_id) {
+    // 3️⃣ ENSURE DOCTOR TOKEN
+    if (!decoded.id) {
       return {
         statusCode: 403,
         body: JSON.stringify({ error: "Hospital access only" }),
       };
     }
 
-    const hospitalId = decoded.hospital_id;
-
-    // 4️⃣ SALESFORCE ACCESS TOKEN
+    console.log("Decoded JWT:", decoded);
+    // 4️⃣ SALESFORCE TOKEN
     const { access_token, instance_url } = await getSfAccessToken();
 
-    // 5️⃣ QUERY ALL DOCTORS UNDER HOSPITAL
+    // 5️⃣ QUERY REPORTS CREATED BY THIS DOCTOR
     const soql = `
       SELECT
         Id,
         Name,
-        Email__c,
-        Doctor_Id__c,
-        Hospital__c,
-        Phone_No__c,
-        CreatedDate
-      FROM Doctor__c
-      WHERE Hospital__c='${hospitalId}'
+        Notes__c,
+        URL__c,
+        Category__c,
+        Title__c,
+        Date_of_expire__c,
+        Date_of_issue__c,
+        Patient__r.Name,
+        Doctor__r.Name,
+        Hospital__r.Npi_Id__c
+      FROM Patient_Report__c
+      WHERE Doctor__c = '${decoded.id}'
       ORDER BY CreatedDate DESC
     `;
 
@@ -65,18 +70,18 @@ export async function handler(event) {
     );
 
     const data = await res.json();
-    console.log("Fetched doctors data:", data);
+    console.log("Fetched reports:", data);
 
     return {
       statusCode: 200,
       body: JSON.stringify({
         status: true,
         count: data.totalSize,
-        doctors: data.records || [],
+        reports: data.records || [],
       }),
     };
   } catch (err) {
-    console.error("Get doctors error:", err);
+    console.error("Get reports error:", err);
     return {
       statusCode: 500,
       body: JSON.stringify({ error: err.message }),

@@ -1,36 +1,44 @@
-
+import jwt from "jsonwebtoken";
 import { getSfAccessToken } from "./getToken";
 
 export async function handler(event) {
   try {
-    if (!event.body) {
+    const authHeader =
+      event.headers.authorization || event.headers.Authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return {
-        statusCode: 400,
-        body: JSON.stringify({ error: "No body" }),
+        statusCode: 401,
+        body: JSON.stringify({ error: "Invalid authorization format" }),
       };
     }
 
-    const {
-      name,
-      email,
-      phone_no,
-      adhaar_no,
-      date_of_birth,
-      specialization,
-    } = JSON.parse(event.body);
+    const token = authHeader.split(" ")[1];
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch {
+      return {
+        statusCode: 401,
+        body: JSON.stringify({ error: "Invalid token" }),
+      };
+    }
+    if (!decoded.id) {
+      return {
+        statusCode: 403,
+        body: JSON.stringify({ error: "Hospital access only" }),
+      };
+    }
 
-    if (
-      !name ||
-      !email ||
-      !adhaar_no ||
-      !specialization
-    ) {
+    console.log("Decoded JWT in doctorRegister:", decoded);
+    const { data } = JSON.parse(event.body);
+
+    if (!data.name || !data.email || !data.adhaar_no || !data.specialization) {
       return {
         statusCode: 400,
         body: JSON.stringify({ error: "Missing fields" }),
       };
     }
-
 
     // 2️⃣ GET SALESFORCE ACCESS TOKEN
     const { access_token, instance_url } = await getSfAccessToken();
@@ -40,13 +48,13 @@ export async function handler(event) {
 
     // 3️⃣ PREPARE SALESFORCE OBJECT (Doctor__c)
     const sfBody = {
-      Hospital__c: TEST_HOSPITAL_ID,
-      Name: name,
-      Email__c: email,
-      Phone_No__c: phone_no,
-      Aadhaar_No__c: adhaar_no,
-      Date_of_Birth__c: date_of_birth,
-      Specialization__c: specialization,
+      Hospital__c: decoded.id,
+      Name: data.name,
+      Email__c: data.email,
+      Phone_No__c: data.phone_no,
+      Aadhaar_No__c: data.adhaar_no,
+      Date_of_Birth__c: data.date_of_birth,
+      Specialization__c: data.specialization,
     };
 
     // 4️⃣ CREATE RECORD IN SALESFORCE
@@ -62,15 +70,15 @@ export async function handler(event) {
       }
     );
 
-    const data = await res.json();
-    console.log("Salesforce response:", data);
+    const Data = await res.json();
+    console.log("Salesforce response:", Data);
 
-    if (res.status === 201 || data.id) {
+    if (res.status === 201 || Data.id) {
       return {
         statusCode: 200,
         body: JSON.stringify({
           status: true,
-          id: data.id,
+          id: Data.id,
           message: "Doctor registered successfully",
         }),
       };

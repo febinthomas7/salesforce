@@ -68,6 +68,32 @@ export async function handler(event) {
     );
 
     const createData = await createRes.json();
+    const appointmentId = createData.id;
+
+    const soql = `
+  SELECT
+    Id,
+    Name,
+    Visit_Time__c,
+    Date__c,
+    Department__c,
+    Patient__r.Name,
+    Hospital__r.Name
+  FROM Appointment__c
+  WHERE Id='${appointmentId}'
+`;
+
+    const queryRes = await fetch(
+      `${instance_url}/services/data/v57.0/query?q=${encodeURIComponent(soql)}`,
+      {
+        headers: {
+          Authorization: `Bearer ${access_token}`,
+        },
+      }
+    );
+    const fullData = await queryRes.json();
+
+    console.log("Create OPD Ticket Response:", fullData);
 
     if (!createRes.ok) {
       return {
@@ -84,6 +110,7 @@ export async function handler(event) {
         ticket: {
           slot,
           createdAt: new Date().toLocaleString(),
+          appointmentId: fullData.records[0].Name,
         },
       }),
     };

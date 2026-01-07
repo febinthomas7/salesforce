@@ -31,7 +31,7 @@ const BookingModal = ({ hospital, onClose }) => {
     department: "",
     date: new Date().toISOString().split("T")[0],
     slot: "",
-    patientName: mockPatient.name,
+    patientName: localStorage.getItem("dashboardName") || "",
     aadhaar: mockPatient.aadhaar,
   });
 
@@ -52,20 +52,7 @@ const BookingModal = ({ hospital, onClose }) => {
     "General Surgery",
     "Nephrology",
   ];
-  // useEffect(async () => {
-  //   try {
-  //     const res = await createOpdTicket(
-  //       token,
-  //       hospital.Id,
-  //       formData.slot,
-  //       formData.department,
-  //       hospital.Name
-  //     );
-  //     console.log("Create OPD Ticket Response:", res);
-  //   } catch (error) {
-  //     console.error("Error creating OPD ticket:", error);
-  //   }
-  // }, []);
+
   const handleBook = () => {
     setStep(2);
 
@@ -90,16 +77,16 @@ const BookingModal = ({ hospital, onClose }) => {
 
       // Generate "Official" ID
       const randomNum = Math.floor(100000 + Math.random() * 900000);
-      const officialId = `${hospital.Name}-${randomNum}`;
+      const officialId = res?.ticket?.appointmentId || `OPD${randomNum}`;
 
       setBookingDetails({
         ...formData,
         id: officialId,
         timestamp: new Date().toLocaleString(),
-        hospitalName: hospital.Name,
-        hospitalLocation: hospital.Address__c,
-        hospitalDistrict: hospital.District__r.Name,
-        hospitalState: hospital.State__r.Name,
+        hospitalName: hospital?.Name,
+        hospitalLocation: hospital?.Address__c,
+        hospitalDistrict: hospital?.District__r.Name,
+        hospitalState: hospital?.State__r.Name,
         patientName: localStorage.getItem("dashboardName"),
       });
       setStep(3);

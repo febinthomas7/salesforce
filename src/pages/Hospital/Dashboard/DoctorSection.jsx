@@ -1,5 +1,16 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { UserPlus, Edit, Trash2, Stethoscope, Search, Calendar, X, CheckCircle, Filter, ArrowUpDown } from "lucide-react";
+import {
+  UserPlus,
+  Edit,
+  Trash2,
+  Stethoscope,
+  Search,
+  Calendar,
+  X,
+  CheckCircle,
+  Filter,
+  ArrowUpDown,
+} from "lucide-react";
 import { getDoctorsByHospital, registerDoctor } from "../../../api/auth";
 import DoctorForm from "./DoctorForm";
 
@@ -22,7 +33,7 @@ const DoctorsSection = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formData, setFormData] = useState(initialDoctorForm);
   const [editingDoctorId, setEditingDoctorId] = useState(null);
-  
+
   // UI States
   const [notification, setNotification] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -46,11 +57,11 @@ const DoctorsSection = () => {
             doctor_id: d.Doctor_Id__c,
             name: d.Name || "",
             email: d.Email__c || "",
-            npi_id: d.Hospital__c || "", 
+            npi_id: d.Hospital__c || "",
             specialization: d.Specialization__c || "General",
-            phone_no: d.Phone__c || "",
+            phone_no: d.Phone_No__c || "",
             adhaar_no: d.Adhaar_No__c || "",
-            date_of_birth: d.DOB__c || "",   
+            date_of_birth: d.DOB__c || "",
             created_at: d.CreatedDate,
           }));
           setDoctors(mappedDoctors);
@@ -73,7 +84,7 @@ const DoctorsSection = () => {
     setFormData({
       ...initialDoctorForm,
       ...doctor,
-      password: "", 
+      password: "",
     });
     setEditingDoctorId(doctor.doctor_id);
     setIsFormOpen(true);
@@ -88,7 +99,7 @@ const DoctorsSection = () => {
       );
       showToast("Doctor details updated successfully!");
     } else {
-      const res = await registerDoctor(formData);
+      const res = await registerDoctor(token, formData);
       if (res?.status) {
         setDoctors((prev) => [
           {
@@ -121,7 +132,8 @@ const DoctorsSection = () => {
         (doc.email?.toLowerCase() || "").includes(searchLower);
 
       const matchesSpecialization =
-        selectedSpecialization === "all" || doc.specialization === selectedSpecialization;
+        selectedSpecialization === "all" ||
+        doc.specialization === selectedSpecialization;
 
       const matchesHospital =
         selectedHospital === "all" || doc.npi_id === selectedHospital;
@@ -142,13 +154,22 @@ const DoctorsSection = () => {
     });
 
     return filtered;
-  }, [doctors, searchTerm, selectedSpecialization, selectedHospital, sortBy, sortOrder]);
+  }, [
+    doctors,
+    searchTerm,
+    selectedSpecialization,
+    selectedHospital,
+    sortBy,
+    sortOrder,
+  ]);
 
-  const specializations = ["all", ...new Set(doctors.map((d) => d.specialization).filter(Boolean))];
+  const specializations = [
+    "all",
+    ...new Set(doctors.map((d) => d.specialization).filter(Boolean)),
+  ];
 
   return (
     <div className="space-y-8 p-10 fade-in bg-gray-50 min-h-screen relative">
-      
       {/* 🔔 TOP NOTIFICATION */}
       {notification && (
         <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] animate-in slide-in-from-top duration-300">
@@ -173,7 +194,6 @@ const DoctorsSection = () => {
 
       {/* 🔹 SIMPLIFIED SEARCH & FILTER SECTION */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-2 flex flex-col md:flex-row gap-2">
-        
         {/* Search Input */}
         <div className="relative flex-grow">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -198,7 +218,13 @@ const DoctorsSection = () => {
             className="w-full pl-9 pr-8 py-2.5 bg-transparent rounded-xl focus:bg-gray-50 focus:ring-0 text-gray-600 outline-none appearance-none cursor-pointer"
           >
             <option value="all">All Specialties</option>
-            {specializations.filter(s => s !== "all").map((spec) => <option key={spec} value={spec}>{spec}</option>)}
+            {specializations
+              .filter((s) => s !== "all")
+              .map((spec) => (
+                <option key={spec} value={spec}>
+                  {spec}
+                </option>
+              ))}
           </select>
         </div>
 
@@ -212,7 +238,8 @@ const DoctorsSection = () => {
             value={`${sortBy}-${sortOrder}`}
             onChange={(e) => {
               const [s, o] = e.target.value.split("-");
-              setSortBy(s); setSortOrder(o);
+              setSortBy(s);
+              setSortOrder(o);
             }}
             className="w-full pl-9 pr-4 py-2.5 bg-transparent rounded-xl focus:bg-gray-50 focus:ring-0 text-gray-600 outline-none appearance-none cursor-pointer"
           >
@@ -224,22 +251,25 @@ const DoctorsSection = () => {
 
         {/* Result Count */}
         <div className="flex items-center px-4 py-2 bg-gray-100 rounded-xl text-xs font-bold text-gray-500 whitespace-nowrap">
-           {filteredAndSortedDoctors.length} found
+          {filteredAndSortedDoctors.length} found
         </div>
       </div>
 
       {/* 🏥 POP-UP MODAL */}
       {isFormOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setIsFormOpen(false)} />
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setIsFormOpen(false)}
+          />
           <div className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto bg-white rounded-3xl shadow-2xl animate-in zoom-in duration-200">
-            <button 
-              onClick={() => setIsFormOpen(false)} 
+            <button
+              onClick={() => setIsFormOpen(false)}
               className="absolute top-6 right-6 p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors z-10"
             >
               <X className="w-6 h-6 text-gray-500" />
             </button>
-            
+
             {/* PASSING DATA TO FORM */}
             <DoctorForm
               formData={formData}
@@ -262,18 +292,36 @@ const DoctorsSection = () => {
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-bold text-gray-800">{doctor.name}</h3>
               <div className="flex gap-2">
-                <button onClick={() => handleEditClick(doctor)} className="text-indigo-600 p-2 hover:bg-indigo-50 rounded-lg"><Edit className="h-5 w-5" /></button>
-                <button onClick={() => handleDeleteClick(doctor.doctor_id)} className="text-red-600 p-2 hover:bg-red-50 rounded-lg"><Trash2 className="h-5 w-5" /></button>
+                <button
+                  onClick={() => handleEditClick(doctor)}
+                  className="text-indigo-600 p-2 hover:bg-indigo-50 rounded-lg"
+                >
+                  <Edit className="h-5 w-5" />
+                </button>
+                <button
+                  onClick={() => handleDeleteClick(doctor.doctor_id)}
+                  className="text-red-600 p-2 hover:bg-red-50 rounded-lg"
+                >
+                  <Trash2 className="h-5 w-5" />
+                </button>
               </div>
             </div>
-            
+
             <div className="space-y-2 text-sm text-gray-500">
-              <p><strong>Email:</strong> {doctor.email}</p>
-              <p><strong>Specialty:</strong> {doctor.specialization}</p>
-              <p><strong>Phone:</strong> {doctor.phone_no}</p>
+              <p>
+                <strong>Email:</strong> {doctor.email}
+              </p>
+              <p>
+                <strong>Specialty:</strong> {doctor.specialization}
+              </p>
+              <p>
+                <strong>Phone:</strong> {doctor.phone_no}
+              </p>
               <p className="flex items-center gap-2 mt-2">
                 <Stethoscope className="h-4 w-4 text-teal-600" />
-                <span><strong>NPI:</strong> {doctor.npi_id}</span>
+                <span>
+                  <strong>NPI:</strong> {doctor.npi_id}
+                </span>
               </p>
               <p className="flex items-center gap-2 text-gray-400 text-xs">
                 <Calendar className="h-3 w-3" />

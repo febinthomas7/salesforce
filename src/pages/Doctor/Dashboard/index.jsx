@@ -74,6 +74,7 @@ const appointmentsData = [
 ];
 const Dashboard = () => {
   const today = new Date();
+  const doctorData = localStorage.getItem("dashboardName");
   const todaysAppointments = appointmentsData?.filter((appt) => {
     const apptDate = new Date(appt.date);
     return (
@@ -93,7 +94,7 @@ const Dashboard = () => {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between">
             <div>
               <h1 className="text-3xl font-bold mb-2">
-                Welcome back, Dr. {doctorData?.name || "booyah"}!
+                Welcome back ,{doctorData || " "}!
               </h1>
               <p className="text-stone-100">
                 Here's a summary of your activities for today,{" "}

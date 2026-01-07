@@ -83,7 +83,7 @@ export async function handler(event) {
       body: JSON.stringify({
         status: true,
         token,
-        data: payload,
+        name: record.Name,
       }),
     };
   } catch (err) {

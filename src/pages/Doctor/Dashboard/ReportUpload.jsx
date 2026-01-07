@@ -28,9 +28,10 @@ const priorities = [
   { value: "high", label: "High", color: "text-orange-600" },
   { value: "critical", label: "Critical", color: "text-red-600" },
 ];
+const token = localStorage.getItem("token");
 const ReportUpload = () => {
   const [formData, setFormData] = useState({
-    patientName: "",
+    aadhaar: "",
     title: "",
     category: "lab",
     dateOfExpire: "",
@@ -115,9 +116,10 @@ const ReportUpload = () => {
       formPayload.append("title", formData.title);
       formPayload.append("priority", formData.priority);
       formPayload.append("tags", formData.tags);
+      formPayload.append("aadhaar", formData.aadhaar);
 
       // 2️⃣ Call Netlify function
-      const res = await createReport(formPayload);
+      const res = await createReport(token, formPayload);
 
       setShowSuccess(true);
 
@@ -141,7 +143,7 @@ const ReportUpload = () => {
 
       // 4️⃣ Reset form
       setFormData({
-        patientName: "",
+        aadhaar: "",
         title: "",
         category: "lab",
         dateOfExpire: "",
@@ -263,17 +265,17 @@ const ReportUpload = () => {
           {/* Patient Name */}
           <div className="lg:col-span-2">
             <label className="block text-lg font-bold text-gray-800 mb-3">
-              Patient Name *
+              Patient Aadhaar *
             </label>
             <div className="relative">
               <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#8FBEB9] h-6 w-6" />
               <input
                 type="text"
-                name="patientName"
-                value={formData.patientName}
+                name="aadhaar"
+                value={formData.aadhaar}
                 onChange={handleInputChange}
                 required
-                placeholder="e.g., Rohan Sharma"
+                placeholder="e.g., 1234-5678-9012"
                 className="w-full pl-12 pr-4 py-3 border-2 text-black border-gray-300 rounded-xl focus:ring-2 focus:ring-[#8FBEB9] focus:border-[#8FBEB9] transition-all duration-200 text-lg"
               />
             </div>

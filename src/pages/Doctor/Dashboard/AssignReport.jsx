@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Search,
   Filter,
@@ -12,12 +12,15 @@ import {
 } from "lucide-react";
 import { getCategoryIcon, formatDate, getPriorityColor } from "../../../utils";
 import { mockReports } from "../../../utils";
-
+import { getReportsByDoctor } from "../../../api/auth";
+const token = localStorage.getItem("token");
 const AssignReport = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedPriority, setSelectedPriority] = useState("all");
   const [sortBy, setSortBy] = useState("date");
+  const [reports, setReports] = useState([]);
+
   const [sortOrder, setSortOrder] = useState("desc");
 
   // Define categories and priorities for the filter options
@@ -36,13 +39,37 @@ const AssignReport = () => {
     { value: "medium", label: "Medium" },
     { value: "low", label: "Low" },
   ];
+  useEffect(() => {
+    async function loadReports() {
+      const res = await getReportsByDoctor(token); // calls Netlify function
+      if (res?.status) {
+        setReports(
+          res.reports.map((r) => ({
+            report_id: r.Id,
+            title: r?.Title__c,
+            category: r?.Category__c,
+            description: r?.Notes__c,
+            fileUrl: r?.URL__c,
+            date_of_issue: r?.Date_of_issue__c,
+            priority: r?.Priority__c || "Medium",
+            status: "Completed",
+            patient_name: r?.Patient__r?.Name,
+            doctorName: r?.Doctor__r?.Name || "N/A",
+            npi_id: r?.Hospital__r?.NPI_id__c,
+          }))
+        );
+      }
+    }
+
+    loadReports();
+  }, []);
 
   // Use useMemo to filter and sort reports efficiently
   const filteredAndSortedReports = useMemo(() => {
-    let filtered = mockReports?.filter((report) => {
+    let filtered = reports?.filter((report) => {
       // Updated search to include patientName
       const matchesSearch =
-        report.patientName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        report.patient_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         report.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         report.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         report.hospital?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -58,8 +85,8 @@ const AssignReport = () => {
     // Sort reports based on selected criteria
     filtered.sort((a, b) => {
       if (sortBy === "date") {
-        const dateA = new Date(a.date).getTime();
-        const dateB = new Date(b.date).getTime();
+        const dateA = new Date(a.date_of_issue).getTime();
+        const dateB = new Date(b.date_of_issue).getTime();
         return sortOrder === "desc" ? dateB - dateA : dateA - dateB;
       } else if (sortBy === "priority") {
         const priorityOrder = { critical: 4, high: 3, medium: 2, low: 1 };
@@ -74,7 +101,7 @@ const AssignReport = () => {
 
     return filtered;
   }, [
-    mockReports,
+    reports,
     searchTerm,
     selectedCategory,
     selectedPriority,
@@ -162,9 +189,9 @@ const AssignReport = () => {
 
       {/* Reports List */}
       <div className="space-y-4">
-        {filteredAndSortedReports.map((report) => (
+        {filteredAndSortedReports.map((report, index) => (
           <div
-            key={report.id}
+            key={index}
             className="bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] border border-gray-100"
           >
             <div className="p-6">
@@ -183,11 +210,11 @@ const AssignReport = () => {
                       {/* Updated to show Patient Name and ID */}
                       <div className="flex items-center">
                         <User className="h-4 w-4 mr-1" />
-                        Patient: {report.patientName} ({report.patientId})
+                        Patient: {report.patient_name}
                       </div>
                       <div className="flex items-center">
                         <Calendar className="h-4 w-4 mr-1" />
-                        {formatDate(report.date)}
+                        {formatDate(report.date_of_issue)}
                       </div>
                       <div>🏥 {report.hospital}</div>
                     </div>
@@ -212,19 +239,29 @@ const AssignReport = () => {
               <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                 <div className="flex items-center space-x-2 text-xs text-gray-500">
                   <Clock className="h-3 w-3" />
-                  <span>Last updated: {formatDate(report.date)}</span>
+                  <span>Last updated: {formatDate(report.date_of_issue)}</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <button className="text-blue-600 hover:text-blue-700 p-2 rounded-xl hover:bg-blue-50 transition-all duration-200 font-medium flex items-center text-sm px-3">
                     <ClipboardCheck className="h-4 w-4 mr-1" />
                     Assign
                   </button>
-                  <button className="text-[#6B9691] hover:text-[#58807C] p-2 rounded-xl hover:bg-[#F1F9F8] transition-all duration-200">
+                  <button
+                    onClick={() => window.open(report.fileUrl, "_blank")}
+                    className="text-[#6B9691] hover:text-[#58807C] p-2 rounded-xl hover:bg-[#F1F9F8] transition-all duration-200"
+                  >
                     <Eye className="h-4 w-4" />
                   </button>
-                  <button className="text-emerald-600 hover:text-emerald-700 p-2 rounded-xl hover:bg-emerald-50 transition-all duration-200">
+                  <a
+                    href={report?.fileUrl?.replace(
+                      "/upload/",
+                      "/upload/fl_attachment/"
+                    )}
+                    download
+                    className="text-emerald-600 hover:text-emerald-700 p-2 rounded-xl hover:bg-emerald-50 transition-all duration-200 inline-flex"
+                  >
                     <Download className="h-4 w-4" />
-                  </button>
+                  </a>
                 </div>
               </div>
             </div>

@@ -27,8 +27,6 @@ export default function Login() {
         localStorage.setItem("role", "doctor");
         localStorage.setItem("dashboardName", data.name);
 
-        localStorage.setItem("doctor", JSON.stringify(data.data));
-
         setMessage({ text: "Login successful!", type: "success" });
 
         e.target.reset();

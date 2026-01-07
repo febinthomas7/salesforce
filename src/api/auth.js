@@ -15,8 +15,13 @@ export const loginDoctor = async (userData) => {
   return res.data;
 };
 
-export const registerDoctor = async (userData) => {
-  const res = await api.post("/.netlify/functions/doctorRegister", userData);
+export const registerDoctor = async (token, userData) => {
+  const res = await api.post("/.netlify/functions/doctorRegister", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    data: userData,
+  });
   return res.data;
 };
 
@@ -30,8 +35,12 @@ export const loginHospital = async (userData) => {
   return res.data;
 };
 
-export const createReport = async (userData) => {
-  const res = await api.post("/.netlify/functions/createReport", userData);
+export const createReport = async (token, userData) => {
+  const res = await api.post("/.netlify/functions/createReport", userData, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
   return res.data;
 };
 
@@ -46,6 +55,15 @@ export const getDoctorsByHospital = async (token) => {
 
 export const getReportsByHospital = async (token) => {
   const res = await api.get("/.netlify/functions/getReportsByHospital", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return res.data;
+};
+
+export const getReportsByDoctor = async (token) => {
+  const res = await api.get("/.netlify/functions/getReportsByDoctor", {
     headers: {
       Authorization: `Bearer ${token}`,
     },
