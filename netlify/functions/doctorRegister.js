@@ -1,4 +1,4 @@
-import crypto from "crypto";
+
 import { getSfAccessToken } from "./getToken";
 
 export async function handler(event) {
@@ -15,21 +15,15 @@ export async function handler(event) {
       email,
       phone_no,
       adhaar_no,
-      password,
       date_of_birth,
       specialization,
-      npi_id,
     } = JSON.parse(event.body);
-    const id = "DOC" + Math.floor(Math.random() * 1000 + 100);
-    // Simple unique ID generation
 
     if (
       !name ||
       !email ||
       !adhaar_no ||
-      !password ||
-      !specialization ||
-      !npi_id
+      !specialization
     ) {
       return {
         statusCode: 400,
@@ -37,11 +31,6 @@ export async function handler(event) {
       };
     }
 
-    // 1️⃣ HASH PASSWORD USING SHA-256
-    const passwordHash = crypto
-      .createHash("sha256")
-      .update(password)
-      .digest("hex");
 
     // 2️⃣ GET SALESFORCE ACCESS TOKEN
     const { access_token, instance_url } = await getSfAccessToken();
@@ -54,12 +43,10 @@ export async function handler(event) {
       Hospital__c: TEST_HOSPITAL_ID,
       Name: name,
       Email__c: email,
-      Phone_Number__c: phone_no,
+      Phone_No__c: phone_no,
       Aadhaar_No__c: adhaar_no,
-      Password_Hash__c: passwordHash,
       Date_of_Birth__c: date_of_birth,
       Specialization__c: specialization,
-      Doctor_Id__c: id,
     };
 
     // 4️⃣ CREATE RECORD IN SALESFORCE

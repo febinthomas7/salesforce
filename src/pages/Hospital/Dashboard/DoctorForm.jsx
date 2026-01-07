@@ -65,17 +65,6 @@ const DoctorForm = ({ formData, setFormData, onSubmit, onCancel, editingDoctorId
             </div>
           </div>
 
-          {/* Password */}
-          <div>
-            <label className={labelClass}>Password</label>
-            <div className={inputWrapperClass}>
-              <Lock className={iconClass} />
-              <input type="password" name="password" value={formData.password || ""} onChange={handleChange} 
-                required={!editingDoctorId} placeholder={editingDoctorId ? "Unchanged" : "••••••••"}
-                className={inputClass} 
-              />
-            </div>
-          </div>
 
           {/* Phone */}
           <div>
@@ -95,17 +84,6 @@ const DoctorForm = ({ formData, setFormData, onSubmit, onCancel, editingDoctorId
               <Stethoscope className={iconClass} />
               <input type="text" name="specialization" value={formData.specialization || ""} onChange={handleChange} 
                 className={inputClass} placeholder="e.g. Cardiology"
-              />
-            </div>
-          </div>
-
-          {/* Hospital NPI */}
-          <div className="md:col-span-2">
-            <label className={labelClass}>Hospital NPI ID</label>
-            <div className={inputWrapperClass}>
-              <Hash className={iconClass} />
-              <input type="text" name="npi_id" value={formData.npi_id || ""} onChange={handleChange} required 
-                className={inputClass} placeholder="Unique Provider ID"
               />
             </div>
           </div>
