@@ -24,19 +24,20 @@ const ReportsSection = () => {
     async function loadReports() {
       const res = await getReportsByHospital(token); // calls Netlify function
       if (res?.status) {
+        console.log("Raw reports data:", res.reports);
         setReports(
           res.reports.map((r) => ({
             report_id: r.Id,
-            title: r.Title__c,
-            category: r.Category__c,
-            description: r.Notes__c,
-            fileUrl: r.URL__c,
-            date_of_issue: r.Date_of_issue__c,
-            priority: r.Priority__c || "Medium",
+            title: r?.Title__c,
+            category: r?.Category__c,
+            description: r?.Notes__c,
+            fileUrl: r?.URL__c,
+            date_of_issue: r?.Date_of_issue__c,
+            priority: r?.Priority__c || "Medium",
             status: "Completed",
-            patient_name: r.Patient__r.Name,
-            doctorName: r.Doctor__r.Name,
-            npi_id: r.Hospital__r.NPI_id__c,
+            patient_name: r?.Patient__r?.Name,
+            doctorName: r?.Doctor__r?.Name || "N/A",
+            npi_id: r?.Hospital__r?.NPI_id__c,
           }))
         );
       }
