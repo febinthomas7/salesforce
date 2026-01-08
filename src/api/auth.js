@@ -118,3 +118,23 @@ export const getPartners = async () => {
   const res = await api.get("/.netlify/functions/getPartners");
   return res.data;
 };
+
+export const loginReceptionist = async (credentials) => {
+  const res = await api.post(
+    "/.netlify/functions/loginReceptionist",
+    credentials
+  );
+  return res.data;
+};
+
+export const getAppointmentsByReceptionist = async (token) => {
+  const res = await api.get(
+    "/.netlify/functions/getAppointmentsByReceptionist",
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+  return res.data;
+};

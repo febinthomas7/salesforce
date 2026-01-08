@@ -440,14 +440,17 @@ export const PrivateRoute = ({ children, allowedRoles, redirectTo }) => {
 
   if (!token) {
     // Not logged in → redirect to login page
-    return <Navigate to={redirectTo || "/login/patient"} replace />;
+    return <Navigate to={redirectTo || "/"} replace />;
   }
   if (allowedRoles && !allowedRoles.includes(role)) {
     // Logged in but not authorized → go to their dashboard or home
     if (role === "doctor") return <Navigate to="/doctor/dashboard" replace />;
     if (role === "hospital")
       return <Navigate to="/hospital/dashboard" replace />;
-    return <Navigate to="/patient/dashboard" replace />;
+    if (role === "receptionist")
+      return <Navigate to="/receptionist/dashboard" replace />;
+    if (role === "patient") return <Navigate to="/patient/dashboard" replace />;
+    return <Navigate to="/" replace />;
   }
   // If logged in → show the protected page
   return children;

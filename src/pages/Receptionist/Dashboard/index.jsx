@@ -20,6 +20,7 @@ import {
   History,
   CreditCard,
 } from "lucide-react";
+import { getAppointmentsByReceptionist } from "../../../api/auth";
 
 // --- SALESFORCE MOCK DATA SERVICE ---
 const CURRENT_HOSPITAL_ID = "HOSP-001";
@@ -141,6 +142,7 @@ const StatusBadge = ({ status }) => {
   );
 };
 
+const token = localStorage.getItem("token");
 const Dashboard = () => {
   // State
   const [appointments, setAppointments] = useState([]);
@@ -158,23 +160,22 @@ const Dashboard = () => {
   const [selectedDoctorId, setSelectedDoctorId] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // 1. Fetch Data
   useEffect(() => {
-    const initData = async () => {
+    const getAppointmentsAndDoctors = async () => {
       setLoading(true);
       try {
-        const { appointments, doctors, hospitalName } =
-          await mockSalesforceService.fetchData(CURRENT_HOSPITAL_ID);
-        setAppointments(appointments);
-        setDoctors(doctors);
-        setHospitalInfo({ name: hospitalName, id: CURRENT_HOSPITAL_ID });
+        const data = await getAppointmentsByReceptionist(token);
+        console.log("Appointments fetched:", data);
+        setAppointments(data.appointments);
+        setDoctors(data.doctors);
+        setHospitalInfo({ name: data.hospital.name, id: data.hospital.npi });
       } catch (error) {
         console.error("Failed to fetch Salesforce data", error);
       } finally {
         setLoading(false);
       }
     };
-    initData();
+    getAppointmentsAndDoctors();
   }, []);
 
   // 2. Filter Logic
@@ -182,18 +183,18 @@ const Dashboard = () => {
     const todayStr = new Date().toISOString().split("T")[0];
 
     return appointments
-      .filter((apt) => {
+      ?.filter((apt) => {
         // Time Filter
-        const isToday = apt.Date__c === todayStr;
+        const isToday = apt?.Date__c === todayStr;
         const timeMatch = timeFilter === "Today" ? isToday : true;
 
-        // Search & Status
         const matchesSearch =
-          apt.Patient_Name__c.toLowerCase().includes(
+          apt?.Patient__r?.Name.toLowerCase().includes(
             searchTerm.toLowerCase()
           ) ||
-          apt.Id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          apt.Aadhaar__c.replace(/\s/g, "").includes(searchTerm);
+          apt?.Patient__r?.Aadhaar_No__c.replace(/\s/g, "").includes(
+            searchTerm
+          );
         const matchesStatus =
           selectedStatus === "All" || apt.Status__c === selectedStatus;
 
@@ -440,17 +441,17 @@ const Dashboard = () => {
                       <td className="p-4">
                         <div className="flex items-center gap-2 text-sm text-gray-600 font-mono bg-gray-50 px-2 py-1 rounded w-fit border border-gray-100">
                           <CreditCard size={14} className="text-gray-400" />
-                          {formatAadhaar(apt.Aadhaar__c)}
+                          {formatAadhaar(apt.Patient__r?.Aadhaar_No__c)}
                         </div>
                       </td>
                       <td className="p-4">
                         <div className="flex items-center gap-3">
                           <div className="w-9 h-9 rounded-full bg-gradient-to-br from-teal-100 to-cyan-100 text-teal-700 flex items-center justify-center text-sm font-bold shadow-sm">
-                            {apt.Patient_Name__c.charAt(0)}
+                            {apt.Patient__r?.Name.charAt(0)}
                           </div>
                           <div>
                             <p className="font-semibold text-gray-900">
-                              {apt.Patient_Name__c}
+                              {apt.Patient__r?.Name}
                             </p>
                             <p className="text-xs text-gray-500">
                               {apt.Age__c} yrs • {apt.Gender__c}
@@ -550,18 +551,19 @@ const Dashboard = () => {
                 <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
                 <div className="relative flex items-center gap-4">
                   <div className="w-16 h-16 rounded-full bg-white text-teal-600 flex items-center justify-center text-2xl font-bold shadow-md border-2 border-teal-100">
-                    {selectedAppointment.Patient_Name__c.charAt(0)}
+                    {selectedAppointment.Patient__r?.Name.charAt(0)}
                   </div>
                   <div>
                     <h4 className="text-xl font-bold">
-                      {selectedAppointment.Patient_Name__c}
+                      {selectedAppointment.Patient__r?.Name}
                     </h4>
                     <p className="text-teal-50 opacity-90 text-sm">
                       {selectedAppointment.Gender__c},{" "}
                       {selectedAppointment.Age__c} years
                     </p>
                     <div className="flex items-center gap-2 mt-2 text-sm bg-white/20 px-2 py-1 rounded-lg w-fit backdrop-blur-sm">
-                      <Phone size={14} /> {selectedAppointment.Phone__c}
+                      <Phone size={14} />{" "}
+                      {selectedAppointment.Patient__r?.Phone__c}
                     </div>
                   </div>
                 </div>
@@ -575,7 +577,9 @@ const Dashboard = () => {
                 <div className="flex items-center gap-3">
                   <CreditCard className="text-teal-600" size={20} />
                   <span className="text-lg font-mono font-bold text-gray-800 tracking-wide">
-                    {formatAadhaar(selectedAppointment.Aadhaar__c)}
+                    {formatAadhaar(
+                      selectedAppointment.Patient__r?.Aadhaar_No__c
+                    )}
                   </span>
                   <span className="ml-auto text-xs px-2 py-1 bg-green-100 text-green-700 font-bold rounded">
                     VERIFIED

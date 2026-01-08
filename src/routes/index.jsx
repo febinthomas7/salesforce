@@ -171,11 +171,14 @@ const router = createBrowserRouter([
   {
     path: "/receptionist/dashboard",
     element: (
-      // <PrivateRoute allowedRoles={["receptionist"]} redirectTo="/login/receptionist">
-      <Layout navigation={receptionistNavigation} name={receptionist}>
-        <ReceptionistDashboard />
-      </Layout>
-      // </PrivateRoute>
+      <PrivateRoute
+        allowedRoles={["receptionist"]}
+        redirectTo="/login/receptionist"
+      >
+        <Layout navigation={receptionistNavigation} name={receptionist}>
+          <ReceptionistDashboard />
+        </Layout>
+      </PrivateRoute>
     ),
   },
 

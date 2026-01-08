@@ -1,30 +1,16 @@
 import { Eye, EyeClosed, CheckCircle, LayoutDashboard } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-// --- MOCK API FUNCTION (For Preview Purposes) ---
-// In your actual project, replace this function with:
-// import { loginReceptionist } from "../../../api/auth";
-const loginReceptionist = async (credentials) => {
-  // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-  
-  // Simulate simple validation
-  if (credentials.receptionist_id && credentials.password) {
-    return {
-      status: true,
-      token: "mock-receptionist-token-123",
-      name: "Main Desk Receptionist"
-    };
-  }
-  return { status: false };
-};
+import { loginReceptionist } from "../../../api/auth";
 
 // Main Receptionist Login Component
 export default function ReceptionistLogin() {
   const [isLoading, setIsLoading] = useState(false);
   const [eyePassword, setEyePassword] = useState(false);
   const [message, setMessage] = useState({ text: "", type: "" });
-  
+  const navigate = useNavigate();
+
   // Navigation State (Replaces useNavigate for Preview)
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [dashboardName, setDashboardName] = useState("");
@@ -41,19 +27,25 @@ export default function ReceptionistLogin() {
 
     try {
       const data = await loginReceptionist(credentials);
-      
+
       if (data.status === true) {
         localStorage.setItem("token", data.token);
         localStorage.setItem("role", "receptionist");
         localStorage.setItem("dashboardName", data.name);
         setDashboardName(data.name);
 
-        setMessage({ text: "Login successful! Redirecting...", type: "success" });
+        setMessage({
+          text: "Login successful! Redirecting...",
+          type: "success",
+        });
 
         // Simulate Navigation Delay
         setTimeout(() => {
           setIsLoggedIn(true);
-        }, 800);
+        }, 100);
+        setTimeout(() => {
+          navigate("/receptionist/dashboard");
+        }, 500);
       } else {
         setMessage({
           text: "Invalid Credentials",
@@ -79,15 +71,19 @@ export default function ReceptionistLogin() {
           <div className="w-20 h-20 bg-teal-100 rounded-full flex items-center justify-center mx-auto text-teal-600 mb-4">
             <LayoutDashboard size={40} />
           </div>
-          <h2 className="text-2xl font-bold text-gray-800">Welcome, {dashboardName}</h2>
+          <h2 className="text-2xl font-bold text-gray-800">
+            Welcome, {dashboardName}
+          </h2>
           <p className="text-gray-500">You have successfully logged in.</p>
           <div className="p-4 bg-teal-50 text-teal-700 text-sm rounded-lg font-medium border border-teal-100">
-             Redirecting to Dashboard Route...
-             <br/>
-             <span className="text-xs opacity-75">(/receptionist/dashboard)</span>
+            Redirecting to Dashboard Route...
+            <br />
+            <span className="text-xs opacity-75">
+              (/receptionist/dashboard)
+            </span>
           </div>
-          <button 
-            onClick={() => window.location.reload()} 
+          <button
+            onClick={() => window.location.reload()}
             className="text-sm text-gray-400 hover:text-gray-600 underline mt-4"
           >
             Log Out / Reset Preview
@@ -107,7 +103,9 @@ export default function ReceptionistLogin() {
 
       <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-2xl shadow-2xl animate-in slide-in-from-bottom-4 duration-500">
         <div className="text-center">
-          <h2 className="text-3xl font-bold tracking-tight text-gray-900">Reception Portal</h2>
+          <h2 className="text-3xl font-bold tracking-tight text-gray-900">
+            Reception Portal
+          </h2>
           <p className="mt-2 text-sm text-gray-500">
             Secure login for hospital staff
           </p>
@@ -176,7 +174,7 @@ export default function ReceptionistLogin() {
                   : "bg-red-50 text-red-700 border border-red-100"
               }`}
             >
-              {message.type === 'success' && <CheckCircle size={16}/>}
+              {message.type === "success" && <CheckCircle size={16} />}
               {message.text}
             </div>
           )}
