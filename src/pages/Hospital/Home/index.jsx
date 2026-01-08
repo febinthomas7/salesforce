@@ -16,6 +16,12 @@ const Home = () => {
       imgSrc: "HOSPITAL.png",
       link: "/login/hospital",
     },
+    {
+      title: "Login as a Receptionist!",
+      description: "Learn about our mission and team of experts.",
+      imgSrc: "HOSPITAL.png",
+      link: "/login/receptionist",
+    },
   ];
   return (
     <div
@@ -29,7 +35,7 @@ const Home = () => {
           Welcome Back Hospital Hands
         </h1>
         {/* Two Card Section, centered and responsive */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-8 justify-items-center">
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-8 justify-items-center">
           {cards.map((card, index) => {
             return (
               <Link key={index} to={card.link} className="w-full max-w-sm">

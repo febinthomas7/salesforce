@@ -20,9 +20,11 @@ import DoctorsSection from "../pages/Hospital/Dashboard/DoctorSection.jsx";
 import ReportsSection from "../pages/Hospital/Dashboard/ReportSection.jsx";
 import ProfileSection from "../pages/Hospital/Dashboard/ProfileSection.jsx";
 
+
 const Home = lazy(() => import("../pages/Home"));
 const NotFound = lazy(() => import("../pages/NotFound"));
 const PatientDashboard = lazy(() => import("../pages/Patient/Dashboard"));
+const ReceptionistDashboard = lazy(() => import("../pages/Recceptionist/Dashboard/index.jsx"));
 const DoctorDashboard = lazy(() => import("../pages/Doctor/Dashboard"));
 const AdminDashboard = lazy(() => import("../pages/Admin/adminPortal.jsx"));
 const HospitalDashboard = lazy(() =>
@@ -30,6 +32,7 @@ const HospitalDashboard = lazy(() =>
 );
 
 const LoginPatient = lazy(() => import("../pages/Patient/Login"));
+// const LoginReceptionist = lazy(() => import("../pages/Receptionist/Login"));
 const LoginHospital = lazy(() => import("../pages/Hospital/Login"));
 const LoginA = lazy(() => import("../login/aiAssistent"));
 const LoginDoctor = lazy(() => import("../pages/Doctor/Login"));
@@ -150,6 +153,17 @@ const router = createBrowserRouter([
       </PrivateRoute>
     ),
   },
+  {
+    path: "/Receptionist/dashboard",
+    element: (
+      // <PrivateRoute allowedRoles={["receptionist"]} redirectTo="/login/receptionist">
+        <Layout navigation={receptionistNavigation} name={receptionist}>
+          <ReceptionistDashboard />
+        </Layout>
+      // </PrivateRoute>
+    ),
+  },
+
   { path: "/contact", element: <Contact /> },
   { path: "/about", element: <About /> },
   { path: "/services", element: <Service /> },
@@ -161,6 +175,14 @@ const router = createBrowserRouter([
     element: (
       <PublicRoute>
         <LoginPatient />
+      </PublicRoute>
+    ),
+  },
+  {
+    path: "/login/receptionist",
+    element: (
+      <PublicRoute>
+        <LoginReceptionist />
       </PublicRoute>
     ),
   },
