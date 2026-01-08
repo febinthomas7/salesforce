@@ -10,6 +10,7 @@ import Layout from "../components/Layout/index.jsx";
 import MedicalHistory from "../pages/Patient/Dashboard/MedicalHistory.jsx";
 import AppointmentBooking from "../pages/Patient/Dashboard/AppointmentBooking.jsx";
 import ReportUpload from "../pages/Doctor/Dashboard/ReportUpload.jsx";
+import MyAppointment from "../pages/Patient/Dashboard/MyAppointment.jsx";
 import AssignReport from "../pages/Doctor/Dashboard/AssignReport.jsx";
 import {
   doctorNavigation,
@@ -78,6 +79,17 @@ const router = createBrowserRouter([
       <PrivateRoute allowedRoles={["patient"]} redirectTo="/login/patient">
         <Layout navigation={patientNavigation} name={patient}>
           <AppointmentBooking />
+        </Layout>
+      </PrivateRoute>
+    ),
+  },
+
+  {
+    path: "/patient/my-appointment",
+    element: (
+      <PrivateRoute allowedRoles={["patient"]} redirectTo="/login/patient">
+        <Layout navigation={patientNavigation} name={patient}>
+          <MyAppointment />
         </Layout>
       </PrivateRoute>
     ),
