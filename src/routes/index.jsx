@@ -15,16 +15,18 @@ import {
   doctorNavigation,
   hospitalNavigation,
   patientNavigation,
+  receptionistNavigation,
 } from "../utils/navigaion.js";
 import DoctorsSection from "../pages/Hospital/Dashboard/DoctorSection.jsx";
 import ReportsSection from "../pages/Hospital/Dashboard/ReportSection.jsx";
 import ProfileSection from "../pages/Hospital/Dashboard/ProfileSection.jsx";
 
-
 const Home = lazy(() => import("../pages/Home"));
 const NotFound = lazy(() => import("../pages/NotFound"));
 const PatientDashboard = lazy(() => import("../pages/Patient/Dashboard"));
-const ReceptionistDashboard = lazy(() => import("../pages/Recceptionist/Dashboard/index.jsx"));
+const ReceptionistDashboard = lazy(() =>
+  import("../pages/Receptionist/Dashboard")
+);
 const DoctorDashboard = lazy(() => import("../pages/Doctor/Dashboard"));
 const AdminDashboard = lazy(() => import("../pages/Admin/adminPortal.jsx"));
 const HospitalDashboard = lazy(() =>
@@ -32,7 +34,7 @@ const HospitalDashboard = lazy(() =>
 );
 
 const LoginPatient = lazy(() => import("../pages/Patient/Login"));
-// const LoginReceptionist = lazy(() => import("../pages/Receptionist/Login"));
+const LoginReceptionist = lazy(() => import("../pages/Receptionist/Login"));
 const LoginHospital = lazy(() => import("../pages/Hospital/Login"));
 const LoginA = lazy(() => import("../login/aiAssistent"));
 const LoginDoctor = lazy(() => import("../pages/Doctor/Login"));
@@ -40,6 +42,7 @@ const HospitalHomePage = lazy(() => import("../pages/Hospital/Home"));
 const doctor = "Doctor";
 const patient = "Patient";
 const hospital = "Hospital";
+const receptionist = "Receptionist";
 const router = createBrowserRouter([
   {
     path: "/",
@@ -94,12 +97,12 @@ const router = createBrowserRouter([
   {
     path: "/doctor/report-upload",
     element: (
-      // <PrivateRoute allowedRoles={["doctor"]} redirectTo="/login/doctor">
-      <Layout navigation={doctorNavigation} name={doctor}>
-        {" "}
-        <ReportUpload />
-      </Layout>
-      // </PrivateRoute>
+      <PrivateRoute allowedRoles={["doctor"]} redirectTo="/login/doctor">
+        <Layout navigation={doctorNavigation} name={doctor}>
+          {" "}
+          <ReportUpload />
+        </Layout>
+      </PrivateRoute>
     ),
   },
   {
@@ -154,12 +157,12 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: "/Receptionist/dashboard",
+    path: "/receptionist/dashboard",
     element: (
       // <PrivateRoute allowedRoles={["receptionist"]} redirectTo="/login/receptionist">
-        <Layout navigation={receptionistNavigation} name={receptionist}>
-          <ReceptionistDashboard />
-        </Layout>
+      <Layout navigation={receptionistNavigation} name={receptionist}>
+        <ReceptionistDashboard />
+      </Layout>
       // </PrivateRoute>
     ),
   },
