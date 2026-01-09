@@ -20,7 +20,10 @@ import {
   History,
   CreditCard,
 } from "lucide-react";
-import { getAppointmentsByReceptionist } from "../../../api/auth";
+import {
+  getAppointmentsByReceptionist,
+  updateAppointmentsByReceptionist,
+} from "../../../api/auth";
 
 // --- SALESFORCE MOCK DATA SERVICE ---
 const CURRENT_HOSPITAL_ID = "HOSP-001";
@@ -214,45 +217,49 @@ const Dashboard = () => {
   };
 
   // 4. Handlers
-  const handleAssignDoctorAndConfirm = () => {
-    if (!selectedDoctorId) return;
-    const doctorDetails = doctors.find((d) => d.Id === selectedDoctorId);
+  const handleAssignDoctorAndConfirm = async () => {
+    if (!selectedDoctorId || !selectedAppointment) return;
 
-    setAppointments((prev) =>
-      prev.map((apt) =>
-        apt.Id === selectedAppointment.Id
-          ? {
-              ...apt,
-              Status__c: "Successful", // Directly to Successful
-              Assigned_Doctor_Ref__c: doctorDetails.Id,
-              Doctor_Name_Snapshot: doctorDetails.Name,
-            }
-          : apt
-      )
-    );
+    const AssignData = {
+      appointmentId: selectedAppointment.Id,
+      doctorId: selectedDoctorId,
+    };
+    try {
+      const res = await updateAppointmentsByReceptionist(token, AssignData);
 
-    setSelectedAppointment((prev) => ({
-      ...prev,
-      Status__c: "Successful", // Directly to Successful
-      Assigned_Doctor_Ref__c: doctorDetails.Id,
-      Doctor_Name_Snapshot: doctorDetails.Name,
-    }));
-    setSelectedDoctorId("");
-  };
+      // const data = await res.json();/
+      if (!res.status) throw new Error(res.error);
 
-  const handleStatusUpdate = (id, newStatus) => {
-    setAppointments((prev) =>
-      prev.map((apt) =>
-        apt.Id === id ? { ...apt, Status__c: newStatus } : apt
-      )
-    );
-    if (selectedAppointment && selectedAppointment.Id === id) {
-      setSelectedAppointment((prev) => ({ ...prev, Status__c: newStatus }));
+      // ✅ Update UI after backend success
+      const doctorDetails = doctors.find((d) => d.Id === selectedDoctorId);
+
+      setAppointments((prev) =>
+        prev.map((apt) =>
+          apt.Id === selectedAppointment.Id
+            ? {
+                ...apt,
+                Status__c: "Successful",
+                Doctor__r: { Name: doctorDetails.Name },
+              }
+            : apt
+        )
+      );
+
+      setSelectedAppointment((prev) => ({
+        ...prev,
+        Status__c: "Successful",
+        Doctor__r: { Name: doctorDetails.Name },
+      }));
+
+      setSelectedDoctorId("");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to update appointment");
     }
   };
 
   const getDoctorsForDepartment = (dept) =>
-    doctors.filter((doc) => doc.Department__c === dept);
+    doctors.filter((doc) => doc.Specialization__c === dept);
 
   // Helper to mask Aadhaar (Disabled: now showing full number)
   const formatAadhaar = (str) => {
@@ -468,10 +475,10 @@ const Dashboard = () => {
                         </div>
                       </td>
                       <td className="p-4">
-                        {apt.Doctor_Name_Snapshot ? (
+                        {apt.Doctor__r?.Name ? (
                           <div className="flex items-center gap-1.5 text-sm text-gray-700 font-medium">
                             <Stethoscope size={14} className="text-teal-500" />
-                            {apt.Doctor_Name_Snapshot}
+                            {apt.Doctor__r?.Name}
                           </div>
                         ) : (
                           <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-400">
@@ -628,9 +635,9 @@ const Dashboard = () => {
                           <option value="">Choose available doctor...</option>
                           {getDoctorsForDepartment(
                             selectedAppointment.Department__c
-                          ).map((doc) => (
+                          ).map((doc, index) => (
                             <option
-                              key={doc.Id}
+                              key={index}
                               value={doc.Id}
                               disabled={doc.Status__c !== "Available"}
                             >
@@ -654,8 +661,7 @@ const Dashboard = () => {
                         </div>
                         <div>
                           <p className="text-sm font-bold text-gray-900">
-                            {selectedAppointment.Doctor_Name_Snapshot ||
-                              "Unknown"}
+                            {selectedAppointment.Doctor__r?.Name || "Unknown"}
                           </p>
                           <p className="text-xs text-teal-600 font-medium">
                             Attending Physician
@@ -670,28 +676,12 @@ const Dashboard = () => {
                   </div>
                 </div>
               </div>
-
-              {/* Notes */}
-              <div>
-                <h4 className="text-sm font-bold text-gray-900 mb-2">Notes</h4>
-                <div className="p-3 bg-yellow-50/50 border border-yellow-100 rounded-xl text-sm text-gray-700 leading-relaxed">
-                  {selectedAppointment.Notes__c}
-                </div>
-              </div>
             </div>
 
             {/* Action Footer */}
             <div className="p-6 border-t border-gray-100 bg-gray-50 space-y-3">
               {selectedAppointment.Status__c === "Pending" && (
                 <div className="flex gap-3">
-                  <button
-                    onClick={() =>
-                      handleStatusUpdate(selectedAppointment.Id, "Cancelled")
-                    }
-                    className="flex-1 py-3 border border-red-200 text-red-600 font-bold rounded-xl hover:bg-red-50 transition-colors text-sm"
-                  >
-                    Reject
-                  </button>
                   <button
                     onClick={handleAssignDoctorAndConfirm}
                     disabled={!selectedDoctorId}
@@ -704,7 +694,7 @@ const Dashboard = () => {
 
               {selectedAppointment.Status__c === "Successful" && (
                 <div className="w-full py-3 bg-emerald-50 text-emerald-600 border border-emerald-100 font-bold rounded-xl text-center text-sm cursor-default flex items-center justify-center gap-2">
-                  <CheckCircle size={16} /> Ticket Issued / Visit Successful
+                  <CheckCircle size={16} /> Ticket Issued
                 </div>
               )}
             </div>

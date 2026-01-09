@@ -15,7 +15,11 @@ import {
 export const patientNavigation = [
   { name: "Dashboard", href: "/patient/dashboard", icon: LayoutDashboard },
   { name: "Report", href: "/patient/report", icon: DocumentTextIcon },
-  { name: "Appointment", href: "/patient/appointment-booking", icon: Calendar },
+  {
+    name: "Appointment",
+    href: "/patient/appointment-booking",
+    icon: MagnifyingGlassIcon,
+  },
   { name: "My-Appointment", href: "/patient/my-appointment", icon: Calendar },
 ];
 

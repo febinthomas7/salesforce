@@ -147,3 +147,16 @@ export const getAppointmentsByPatient = async (token) => {
   });
   return res.data;
 };
+
+export const updateAppointmentsByReceptionist = async (token, userData) => {
+  const res = await api.post(
+    "/.netlify/functions/updateAppointmentsByReceptionist",
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      data: userData,
+    }
+  );
+  return res.data;
+};

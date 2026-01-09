@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import { getSfAccessToken } from "./getToken";
-
+import { clearCache } from "./cache";
 export async function handler(event) {
   try {
     // 1️⃣ AUTH CHECK
@@ -63,6 +63,7 @@ export async function handler(event) {
           Date__c: new Date().toISOString().split("T")[0],
           Department__c: department,
           Name: hospitalName,
+          Status__c: "Pending",
         }),
       }
     );
@@ -93,14 +94,14 @@ export async function handler(event) {
     );
     const fullData = await queryRes.json();
 
-    console.log("Create OPD Ticket Response:", fullData);
-
     if (!createRes.ok) {
       return {
         statusCode: 500,
         body: JSON.stringify({ error: "Failed to create OPD ticket" }),
       };
     }
+
+    clearCache(`patient-appointment-booking-${decoded.id}`);
 
     // 7️⃣ RETURN TICKET
     return {

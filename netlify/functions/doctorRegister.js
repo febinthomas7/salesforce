@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import { getSfAccessToken } from "./getToken";
-
+import { clearCache } from "./cache";
 export async function handler(event) {
   try {
     const authHeader =
@@ -43,9 +43,6 @@ export async function handler(event) {
     // 2️⃣ GET SALESFORCE ACCESS TOKEN
     const { access_token, instance_url } = await getSfAccessToken();
 
-    // Static hospital assignment (change later if needed)
-    const TEST_HOSPITAL_ID = "a04NS00000RN26PYAT";
-
     // 3️⃣ PREPARE SALESFORCE OBJECT (Doctor__c)
     const sfBody = {
       Hospital__c: decoded.id,
@@ -55,6 +52,7 @@ export async function handler(event) {
       Aadhaar_No__c: data.adhaar_no,
       Date_of_Birth__c: data.date_of_birth,
       Specialization__c: data.specialization,
+      Status__c: "Available",
     };
 
     // 4️⃣ CREATE RECORD IN SALESFORCE
@@ -83,6 +81,7 @@ export async function handler(event) {
         }),
       };
     }
+    clearCache(`hospital-doctors-${decoded.id}`);
 
     // Salesforce error
     return {

@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import { getSfAccessToken } from "./getToken";
-
+import { getCache, setCache } from "./cache";
 export async function handler(event) {
   try {
     // 1️⃣ AUTH HEADER CHECK
@@ -36,7 +36,15 @@ export async function handler(event) {
       };
     }
 
-    console.log("Decoded JWT:", decoded);
+    const cacheKey = `hospital-reports-${decoded.hospital_id}`;
+    const cached = getCache(cacheKey);
+    if (cached) {
+      return {
+        statusCode: 200,
+        body: JSON.stringify(cached),
+      };
+    }
+
     // 4️⃣ SALESFORCE TOKEN
     const { access_token, instance_url } = await getSfAccessToken();
 
@@ -69,15 +77,18 @@ export async function handler(event) {
     );
 
     const data = await res.json();
-    console.log("Fetched reports:", data);
+
+    const response = {
+      status: true,
+      count: data.totalSize,
+      reports: data.records || [],
+    };
+    // 🔥 Cache response
+    setCache(cacheKey, response);
 
     return {
       statusCode: 200,
-      body: JSON.stringify({
-        status: true,
-        count: data.totalSize,
-        reports: data.records || [],
-      }),
+      body: JSON.stringify(response),
     };
   } catch (err) {
     console.error("Get reports error:", err);

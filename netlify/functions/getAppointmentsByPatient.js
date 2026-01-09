@@ -1,9 +1,6 @@
 import jwt from "jsonwebtoken";
 import { getSfAccessToken } from "./getToken";
-
-// In-memory cache (per Netlify instance)
-const patientAppointmentsCache = new Map();
-const CACHE_TTL = 60 * 1000; // 1 minute
+import { getCache, setCache } from "./cache";
 
 export async function handler(event) {
   try {
@@ -43,17 +40,13 @@ export async function handler(event) {
     const limit = Number(event.queryStringParameters?.limit || 20);
     const offset = Number(event.queryStringParameters?.offset || 0);
 
-    const cacheKey = `${decoded.id}_${limit}_${offset}`;
-    const cached = patientAppointmentsCache.get(cacheKey);
+    const cacheKey = `patient-appointment-booking-${decoded.id}`;
+    const cachedData = getCache(cacheKey);
 
-    // 🔥 Serve from cache if valid
-    if (cached && Date.now() - cached.time < CACHE_TTL) {
+    if (cachedData) {
       return {
         statusCode: 200,
-        body: JSON.stringify(cached.data),
-        headers: {
-          "Cache-Control": "public, max-age=60",
-        },
+        body: JSON.stringify(cachedData),
       };
     }
 
@@ -95,10 +88,7 @@ export async function handler(event) {
     };
 
     // 🔥 Cache response
-    patientAppointmentsCache.set(cacheKey, {
-      time: Date.now(),
-      data: response,
-    });
+    setCache(cacheKey, response);
 
     return {
       statusCode: 200,

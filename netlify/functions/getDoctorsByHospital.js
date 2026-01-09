@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import { getSfAccessToken } from "./getToken";
-
+import { getCache, setCache } from "./cache";
 export async function handler(event) {
   try {
     // 1️⃣ AUTH CHECK
@@ -36,6 +36,16 @@ export async function handler(event) {
     }
 
     const hospitalId = decoded.hospital_id;
+    // ✅ CACHE CHECK
+    const cacheKey = `hospital-doctors-${hospitalId}`;
+    const cachedData = getCache(cacheKey);
+
+    if (cachedData) {
+      return {
+        statusCode: 200,
+        body: JSON.stringify(cachedData),
+      };
+    }
 
     // 4️⃣ SALESFORCE ACCESS TOKEN
     const { access_token, instance_url } = await getSfAccessToken();
@@ -65,15 +75,18 @@ export async function handler(event) {
     );
 
     const data = await res.json();
-    console.log("Fetched doctors data:", data);
+
+    const response = {
+      status: true,
+      count: data.totalSize,
+      doctors: data.records || [],
+    };
+    // ✅ STORE IN CACHE
+    setCache(cacheKey, response);
 
     return {
       statusCode: 200,
-      body: JSON.stringify({
-        status: true,
-        count: data.totalSize,
-        doctors: data.records || [],
-      }),
+      body: JSON.stringify(response),
     };
   } catch (err) {
     console.error("Get doctors error:", err);

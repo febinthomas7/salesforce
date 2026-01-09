@@ -1,7 +1,17 @@
 import { getSfAccessToken } from "./getToken";
-
+import { getCache, setCache } from "./cache";
 export async function handler(event) {
   try {
+    // ✅ CACHE CHECK
+    const cacheKey = `partners`;
+    const cachedData = getCache(cacheKey);
+
+    if (cachedData) {
+      return {
+        statusCode: 200,
+        body: JSON.stringify(cachedData),
+      };
+    }
     // This will now either work or jump straight to the catch block below
     const { access_token, instance_url } = await getSfAccessToken();
 
@@ -20,12 +30,16 @@ export async function handler(event) {
 
     const data = await res.json();
 
+    const response = {
+      status: true,
+      count: data.totalSize,
+      partners: data.records || [],
+    };
+
+    setCache(cacheKey, response);
     return {
       statusCode: 200,
-      body: JSON.stringify({
-        status: true,
-        partners: data.records || [],
-      }),
+      body: JSON.stringify(response),
     };
   } catch (err) {
     console.error("Handler Error:", err.message);

@@ -1,8 +1,6 @@
 import jwt from "jsonwebtoken";
 import { getSfAccessToken } from "./getToken";
-
-const reportsCache = new Map();
-const CACHE_TTL = 60 * 1000;
+import { getCache, setCache } from "./cache";
 
 export async function handler(event) {
   try {
@@ -25,16 +23,14 @@ export async function handler(event) {
     const limit = Number(event.queryStringParameters?.limit || 20);
     const offset = Number(event.queryStringParameters?.offset || 0);
 
-    const cacheKey = `${decoded.id}_${limit}_${offset}`;
-    const cached = reportsCache.get(cacheKey);
-
-    if (cached && Date.now() - cached.time < CACHE_TTL) {
+    const cacheKey = `doctor-reports-${decoded.id}`;
+    const cached = getCache(cacheKey);
+    if (cached) {
       return {
         statusCode: 200,
-        body: JSON.stringify(cached.data),
+        body: JSON.stringify(cached),
       };
     }
-
     // 3️⃣ SALESFORCE TOKEN (CACHED)
     const { access_token, instance_url } = await getSfAccessToken();
 
@@ -66,17 +62,11 @@ export async function handler(event) {
     };
 
     // 🔥 Cache response
-    reportsCache.set(cacheKey, {
-      time: Date.now(),
-      data: response,
-    });
+    setCache(cacheKey, response);
 
     return {
       statusCode: 200,
       body: JSON.stringify(response),
-      headers: {
-        "Cache-Control": "public, max-age=60",
-      },
     };
   } catch (err) {
     console.error(err);

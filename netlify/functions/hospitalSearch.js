@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import { getSfAccessToken } from "./getToken";
+import { getCache, setCache } from "./cache";
 
 export async function handler(event) {
   try {
@@ -16,7 +17,6 @@ export async function handler(event) {
 
     const token = authHeader.split(" ")[1];
 
-    // 2️⃣ VERIFY JWT
     let decoded;
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -27,8 +27,23 @@ export async function handler(event) {
       };
     }
 
-    // 3️⃣ READ QUERY PARAMS
-    const { state, district, search } = event.queryStringParameters || {};
+    // 2️⃣ READ QUERY PARAMS
+    const {
+      state = "",
+      district = "",
+      search = "",
+    } = event.queryStringParameters || {};
+
+    // ✅ CACHE KEY (PARAM-BASED)
+    const cacheKey = `hospitals-${state}-${district}-${search}`.toLowerCase();
+
+    const cached = getCache(cacheKey);
+    if (cached) {
+      return {
+        statusCode: 200,
+        body: JSON.stringify(cached),
+      };
+    }
 
     let conditions = [];
 
@@ -50,10 +65,10 @@ export async function handler(event) {
     const whereClause =
       conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
-    // 4️⃣ GET SALESFORCE TOKEN
+    // 3️⃣ SALESFORCE TOKEN
     const { access_token, instance_url } = await getSfAccessToken();
 
-    // 5️⃣ SOQL QUERY
+    // 4️⃣ SOQL QUERY
     const soql = `
       SELECT
         Id,
@@ -81,13 +96,17 @@ export async function handler(event) {
 
     const data = await res.json();
 
-    // 6️⃣ RETURN RESPONSE
+    const response = {
+      status: true,
+      hospitals: data.records || [],
+    };
+
+    // ✅ STORE CACHE
+    setCache(cacheKey, response);
+
     return {
       statusCode: 200,
-      body: JSON.stringify({
-        status: true,
-        hospitals: data.records || [],
-      }),
+      body: JSON.stringify(response),
     };
   } catch (err) {
     console.error("Get hospitals error:", err);

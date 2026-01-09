@@ -2,6 +2,7 @@ import { v2 as cloudinary } from "cloudinary";
 import busboy from "busboy";
 import jwt from "jsonwebtoken";
 import { getSfAccessToken } from "./getToken";
+import { clearCache } from "./cache";
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_NAME,
@@ -165,6 +166,11 @@ export async function handler(event) {
                 body: JSON.stringify(sfData),
               });
             }
+
+            // ✅ CLEAR RELATED CACHES
+            clearCache(`doctor-reports-${decoded.id}`);
+            clearCache(`patient-reports-${patientId}`);
+            clearCache(`hospital-reports-${hospitalRecordId}`);
 
             // 8️⃣ FINAL RESPONSE
             return resolve({

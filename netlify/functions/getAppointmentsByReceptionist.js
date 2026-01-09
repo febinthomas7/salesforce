@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import { getSfAccessToken } from "./getToken";
+import { getCache, setCache } from "./cache";
 
 export async function handler(event) {
   try {
@@ -24,11 +25,23 @@ export async function handler(event) {
     }
 
     const hospitalId = decoded.hospital_id;
-    const { access_token, instance_url } = await getSfAccessToken();
 
+    // ✅ CACHE CHECK
+    const cacheKey = `Receptionist-appointments-${hospitalId}`;
+    const cachedData = getCache(cacheKey);
+
+    if (cachedData) {
+      return {
+        statusCode: 200,
+        body: JSON.stringify(cachedData),
+      };
+    }
+
+    // 🔄 FETCH FROM SALESFORCE
+    const { access_token, instance_url } = await getSfAccessToken();
     const headers = { Authorization: `Bearer ${access_token}` };
 
-    // 1️⃣ Appointments + Patients
+    // 1️⃣ Appointments
     const appointmentSOQL = `
       SELECT
         Id,
@@ -41,7 +54,12 @@ export async function handler(event) {
         Patient__r.Aadhaar_No__c,
         Patient__r.Phone__c,
         Hospital__r.Name,
-        Hospital__r.NPI_id__c
+        Hospital__r.NPI_id__c,
+        Doctor__r.Name,
+        Doctor__r.Doctor_Id__c,
+        Doctor__r.Specialization__c,
+        Doctor__r.Phone_No__c,
+        Doctor__c
       FROM Appointment__c
       WHERE Hospital__c='${hospitalId}'
       ORDER BY CreatedDate DESC
@@ -56,7 +74,7 @@ export async function handler(event) {
 
     const appointmentsData = await appointmentsRes.json();
 
-    // 2️⃣ Doctors (USERS)
+    // 2️⃣ Doctors
     const doctorSOQL = `
       SELECT
         Id,
@@ -66,6 +84,7 @@ export async function handler(event) {
         Hospital__c,
         Phone_No__c,
         Specialization__c,
+        Status__c,
         CreatedDate
       FROM Doctor__c
       WHERE Hospital__c='${hospitalId}'
@@ -80,22 +99,30 @@ export async function handler(event) {
     );
 
     const doctorsData = await doctorsRes.json();
-    console.log("Doctors Data:", doctorsData);
+
+    // ✅ RESPONSE OBJECT
+    const response = {
+      status: true,
+      hospital: {
+        name: appointmentsData.records?.[0]?.Hospital__r?.Name || "",
+        npi: appointmentsData.records?.[0]?.Hospital__r?.NPI_id__c || "",
+      },
+      appointments: appointmentsData.records || [],
+      doctors: doctorsData.records || [],
+    };
+
+    // ✅ STORE IN CACHE
+    setCache(cacheKey, response);
 
     return {
       statusCode: 200,
-      body: JSON.stringify({
-        status: true,
-        hospital: {
-          name: appointmentsData.records?.[0]?.Hospital__r?.Name || "",
-          npi: appointmentsData.records?.[0]?.Hospital__r?.NPI_id__c || "",
-        },
-        appointments: appointmentsData.records || [],
-        doctors: doctorsData.records || [],
-      }),
+      body: JSON.stringify(response),
     };
   } catch (err) {
     console.error("Hospital data error:", err);
-    return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: err.message }),
+    };
   }
 }
