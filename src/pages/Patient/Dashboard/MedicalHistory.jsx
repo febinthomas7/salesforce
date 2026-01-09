@@ -236,21 +236,21 @@ const MedicalHistory = () => {
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-start space-x-4">
                   <div className="text-4xl bg-gradient-to-br from-[#E1F3F1] to-[#F1F9F8] p-3 rounded-xl border border-[#D5E6E4]">
-                    {getCategoryIcon(report.Category__c)}
+                    {getCategoryIcon(report?.Category__c)}
                   </div>
                   <div className="flex-1">
                     <h3 className="text-xl font-bold text-gray-900 mb-2">
-                      {report.Title__c}
+                      {report?.Title__c}
                     </h3>
-                    <p className="text-gray-600 mb-3">{report.Notes__c}</p>
+                    <p className="text-gray-600 mb-3">{report?.Notes__c}</p>
 
                     <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-3">
                       <div className="flex items-center">
                         <Calendar className="h-4 w-4 mr-1" />
-                        {formatDate(report.Date_of_issue__c)}
+                        {formatDate(report?.Date_of_issue__c)}
                       </div>
-                      <div>👨‍⚕️ Dr. {report.Doctor__r.Name}</div>
-                      <div>🏥 {report.Hospital__r.Name}</div>
+                      <div>👨‍⚕️ Dr. {report?.Doctor__r?.Name}</div>
+                      <div>🏥 {report?.Hospital__r?.Name}</div>
                     </div>
 
                     {/* Tags */}

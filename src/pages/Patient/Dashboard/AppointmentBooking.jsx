@@ -4,9 +4,8 @@ import HeroSection from "../../../components/HeroSection";
 import HospitalCard from "../../../components/HospitalCard";
 import Pagination from "../../../components/Pagination";
 import BookingModal from "../../../components/BookingModal";
-import { fetchLocations, fetchHospitals } from "../../../utils/api";
+import { fetchLocations } from "../../../utils/api";
 import { hospitalSearch } from "../../../api/auth";
-// import { Hospital, LocationData } from "./types";
 const token = localStorage.getItem("token");
 
 const AppointmentBooking = () => {
@@ -76,36 +75,10 @@ const AppointmentBooking = () => {
     } finally {
       setIsLoadingHospitals(false);
     }
-
-    // fetch(`/api/hospitals?${params.toString()}`);
   };
   useEffect(() => {
     fetchHospitals(selectedState, selectedDistrict, debouncedSearch);
   }, [selectedState, selectedDistrict, debouncedSearch]);
-
-  // 3. Fetch Hospitals when filters change
-  // useEffect(() => {
-  //   const loadHospitals = async () => {
-  //     setIsLoadingHospitals(true);
-  //     setCurrentPage(1); // Reset page on new fetch
-
-  //     try {
-  //       const data = await fetchHospitals(
-  //         selectedState,
-  //         selectedDistrict,
-  //         debouncedSearch
-  //       );
-  //       setHospitals(data);
-  //     } catch (error) {
-  //       console.error("Failed to load hospitals", error);
-  //       setHospitals([]);
-  //     } finally {
-  //       setIsLoadingHospitals(false);
-  //     }
-  //   };
-
-  //   loadHospitals();
-  // }, [selectedState, selectedDistrict, debouncedSearch]);
 
   // Reset district when state changes
   useEffect(() => {

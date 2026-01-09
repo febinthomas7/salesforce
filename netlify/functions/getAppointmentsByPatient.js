@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import { getSfAccessToken } from "./getToken";
 
 // In-memory cache (per Netlify instance)
-const patientReportsCache = new Map();
+const patientAppointmentsCache = new Map();
 const CACHE_TTL = 60 * 1000; // 1 minute
 
 export async function handler(event) {
@@ -44,7 +44,7 @@ export async function handler(event) {
     const offset = Number(event.queryStringParameters?.offset || 0);
 
     const cacheKey = `${decoded.id}_${limit}_${offset}`;
-    const cached = patientReportsCache.get(cacheKey);
+    const cached = patientAppointmentsCache.get(cacheKey);
 
     // 🔥 Serve from cache if valid
     if (cached && Date.now() - cached.time < CACHE_TTL) {
@@ -65,16 +65,12 @@ export async function handler(event) {
       SELECT
         Id,
         Name,
-        Notes__c,
-        URL__c,
-        Category__c,
-        Title__c,
-        Date_of_expire__c,
-        Date_of_issue__c,
-        Patient__r.Name,
-        Doctor__r.Name,
+        Date__c,
+        Department__c,
+        Status__c,
+        Visit_Time__c,
         Hospital__r.Name
-      FROM Patient_Report__c
+      FROM Appointment__c
       WHERE Patient__c = '${decoded.id.replace(/'/g, "\\'")}'
       ORDER BY CreatedDate DESC
       LIMIT ${limit}
@@ -95,11 +91,11 @@ export async function handler(event) {
     const response = {
       status: true,
       count: data.totalSize,
-      reports: data.records || [],
+      appointments: data.records || [],
     };
 
     // 🔥 Cache response
-    patientReportsCache.set(cacheKey, {
+    patientAppointmentsCache.set(cacheKey, {
       time: Date.now(),
       data: response,
     });

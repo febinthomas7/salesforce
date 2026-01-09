@@ -138,3 +138,12 @@ export const getAppointmentsByReceptionist = async (token) => {
   );
   return res.data;
 };
+
+export const getAppointmentsByPatient = async (token) => {
+  const res = await api.get("/.netlify/functions/getAppointmentsByPatient", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return res.data;
+};
