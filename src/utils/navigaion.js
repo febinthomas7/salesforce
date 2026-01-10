@@ -10,6 +10,7 @@ import {
   Stethoscope,
   Calendar,
   Activity,
+  UserCog,
 } from "lucide-react";
 
 export const patientNavigation = [
@@ -42,7 +43,8 @@ export const receptionistNavigation = [
 
 export const hospitalNavigation = [
   { name: "Dashboard", href: "/hospital/dashboard", icon: LayoutDashboard },
-  { name: "Doctors", href: "/hospital/doctor-form", icon: Users },
+  { name: "Doctors", href: "/hospital/doctor-form", icon: Stethoscope },
+  { name: "Receptionists", href: "/hospital/receptionist-form", icon: UserCog },
   { name: "Profile", href: "/hospital/profile", icon: Building2 },
   { name: "Reports", href: "/hospital/reports", icon: DocumentTextIcon },
 ];

@@ -195,11 +195,10 @@ export const formatTime = (date) => {
 };
 // Helper function to calculate the patient's age
 export const getAge = (patient) => {
-  console.log(patient);
   const today = new Date();
-  const birthDate = new Date(patient.dateOfBirth);
-  let age = today.getFullYear() - birthDate.getFullYear();
-  const monthDiff = today.getMonth() - birthDate.getMonth();
+  const birthDate = new Date(patient?.dateOfBirth);
+  let age = today.getFullYear() - birthDate?.getFullYear();
+  const monthDiff = today.getMonth() - birthDate?.getMonth();
   if (
     monthDiff < 0 ||
     (monthDiff === 0 && today.getDate() < birthDate.getDate())

@@ -10,14 +10,35 @@ import {
 } from "lucide-react";
 
 import { getCategoryIcon, formatDate, getAge } from "../../../utils";
-import { mockPatient, mockReports } from "../../../utils";
-
+import { mockReports } from "../../../utils";
+import { useEffect, useState } from "react";
+import PatientSettings from "../../../components/PatientSettings";
+import { getPatient } from "../../../api/auth";
+const token = localStorage.getItem("token");
 const Dashboard = () => {
+  const [patient, setPatient] = useState();
+  const [emergency, setEmergency] = useState();
+  const [editing, setEditing] = useState(true);
   const recentReports = mockReports.slice(0, 3);
   // Filter for high priority reports
   const criticalReports = mockReports.filter(
     (r) => r.priority === "critical" || r.priority === "high"
   );
+
+  const callPatient = async () => {
+    try {
+      const res = await getPatient(token);
+      setPatient(res.patient);
+      setEmergency(res.emergencyContact);
+      console.log(res);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    callPatient();
+  }, []);
 
   return (
     <div className="w-full h-full mx-auto px-4 sm:px-6 lg:px-8 py-8 fade-in">
@@ -32,18 +53,10 @@ const Dashboard = () => {
               Your complete medical history at a glance
             </p>
           </div>
-          <div className="mt-4 md:mt-0">
-            <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 border border-white/30">
-              <div className="flex items-center space-x-2 text-sm">
-                <Calendar className="h-4 w-4" />
-                <span>
-                  Last visit: {formatDate(mockReports[0]?.date || new Date())}
-                </span>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
+
+      {editing && <PatientSettings onClose={() => setEditing(false)} />}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Patient Info */}
@@ -56,18 +69,20 @@ const Dashboard = () => {
             <div className="space-y-4">
               <div className="flex justify-between">
                 <span className="text-gray-600">Age:</span>
-                <span className="font-medium">{getAge(mockPatient)} years</span>
+                <span className="font-medium">
+                  {getAge(patient?.dob)} years
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Blood Group:</span>
                 <span className="font-bold text-rose-600 bg-rose-50 px-2 py-1 rounded-lg">
-                  {mockPatient.bloodGroup}
+                  {patient?.bloodGroup}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Gender:</span>
                 <span className="font-medium capitalize">
-                  {mockPatient.gender}
+                  {patient?.gender}
                 </span>
               </div>
               <div className="border-t pt-4">
@@ -75,36 +90,30 @@ const Dashboard = () => {
                   <Phone className="h-4 w-4 mr-2 text-emerald-500" />
                   Emergency Contact
                 </div>
-                <p className="font-medium">
-                  {mockPatient.emergencyContact.name}
-                </p>
-                <p className="text-sm text-gray-600">
-                  {mockPatient.emergencyContact.relation}
-                </p>
-                <p className="text-sm text-gray-600">
-                  {mockPatient.emergencyContact.phone}
-                </p>
+                <p className="font-medium">{emergency?.name}</p>
+                <p className="text-sm text-gray-600">{emergency?.relation}</p>
+                <p className="text-sm text-gray-600">{emergency?.phone}</p>
               </div>
             </div>
           </div>
 
           {/* Health Alerts */}
-          {(mockPatient.allergies.length > 0 ||
-            mockPatient.chronicConditions.length > 0) && (
+          {(patient?.allergies?.length > 0 ||
+            patient?.chronicConditions?.length > 0) && (
             <div className="bg-white rounded-2xl shadow-xl p-6 border border-amber-100">
               <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
                 <Shield className="h-6 w-6 text-amber-500 mr-3" />
                 Health Alerts
               </h2>
 
-              {mockPatient.allergies.length > 0 && (
+              {patient.allergies?.length > 0 && (
                 <div className="mb-4">
                   <h3 className="font-medium text-gray-900 mb-2 flex items-center">
                     <AlertTriangle className="h-5 w-5 text-red-500 mr-2" />
                     Allergies
                   </h3>
                   <div className="flex flex-wrap gap-2">
-                    {mockPatient.allergies.map((allergy, index) => (
+                    {patient.allergies?.map((allergy, index) => (
                       <span
                         key={index}
                         className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium border border-red-200"
@@ -116,14 +125,14 @@ const Dashboard = () => {
                 </div>
               )}
 
-              {mockPatient.chronicConditions.length > 0 && (
+              {patient.chronicConditions.length > 0 && (
                 <div>
                   <h3 className="font-medium text-gray-900 mb-2 flex items-center">
                     <TrendingUp className="h-5 w-5 text-orange-500 mr-2" />
                     Chronic Conditions
                   </h3>
                   <div className="flex flex-wrap gap-2">
-                    {mockPatient.chronicConditions.map((condition, index) => (
+                    {patient.chronicConditions.map((condition, index) => (
                       <span
                         key={index}
                         className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm font-medium border border-orange-200"

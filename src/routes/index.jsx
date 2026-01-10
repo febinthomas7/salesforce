@@ -21,6 +21,8 @@ import {
 import DoctorsSection from "../pages/Hospital/Dashboard/DoctorSection.jsx";
 import ReportsSection from "../pages/Hospital/Dashboard/ReportSection.jsx";
 import ProfileSection from "../pages/Hospital/Dashboard/ProfileSection.jsx";
+import Edit from "../pages/Patient/Dashboard/Edit.jsx";
+import ReceptionistSection from "../pages/Hospital/Dashboard/ReceptionistsSection.jsx";
 
 const Home = lazy(() => import("../pages/Home"));
 const NotFound = lazy(() => import("../pages/NotFound"));
@@ -94,6 +96,16 @@ const router = createBrowserRouter([
       </PrivateRoute>
     ),
   },
+  {
+    path: "/patient/edit",
+    element: (
+      <PrivateRoute allowedRoles={["patient"]} redirectTo="/login/patient">
+        <Layout navigation={patientNavigation} name={patient}>
+          <Edit />
+        </Layout>
+      </PrivateRoute>
+    ),
+  },
 
   {
     path: "/doctor/dashboard",
@@ -144,6 +156,16 @@ const router = createBrowserRouter([
       <PrivateRoute allowedRoles={["hospital"]} redirectTo="/login/hospital">
         <Layout navigation={hospitalNavigation} name={hospital}>
           <DoctorsSection />
+        </Layout>
+      </PrivateRoute>
+    ),
+  },
+  {
+    path: "/hospital/receptionist-form",
+    element: (
+      <PrivateRoute allowedRoles={["hospital"]} redirectTo="/login/hospital">
+        <Layout navigation={hospitalNavigation} name={hospital}>
+          <ReceptionistSection />
         </Layout>
       </PrivateRoute>
     ),
@@ -229,6 +251,7 @@ const router = createBrowserRouter([
       </PublicRoute>
     ),
   },
+
   { path: "*", element: <NotFound /> },
 ]);
 

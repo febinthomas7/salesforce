@@ -10,61 +10,10 @@ import {
   Download,
   Building,
   ArrowRight,
-  X, // Added for clearing date
+  X,
+  Stethoscope, // Added for clearing date
 } from "lucide-react";
 import { getAppointmentsByPatient } from "../../../api/auth";
-
-// --- MOCK API SERVICE (Simulating your Salesforce backend) ---
-const fetchPatientAppointments = async () => {
-  // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-
-  // Mock data structure matching your SOQL query fields:
-  // Id, Name, Visit_Time__c, Date__c, Department__c, Patient__r.Name, Hospital__r.Name
-  return [
-    {
-      Id: "a012x00000abc1",
-      Name: "OPD-2024-8891", // Ticket Number
-      Hospital__r: { Name: "City General Hospital - Main Branch" },
-      Department__c: "Cardiology",
-      Date__c: "2025-05-12",
-      Visit_Time__c: "10:00 AM - 11:00 AM",
-      Status__c: "Pending",
-      Doctor_Name: "Unassigned",
-    },
-    {
-      Id: "a012x00000abc2",
-      Name: "OPD-2024-8842",
-      Hospital__r: { Name: "District Civil Hospital" },
-      Department__c: "General Medicine",
-      Date__c: "2025-04-28",
-      Visit_Time__c: "09:00 AM - 10:00 AM",
-      Status__c: "Successful",
-      Doctor_Name: "Dr. Anita Ray",
-    },
-    {
-      Id: "a012x00000abc3",
-      Name: "OPD-2024-7721",
-      Hospital__r: { Name: "City General Hospital - Main Branch" },
-      Department__c: "Dermatology",
-      Date__c: "2025-02-15",
-      Visit_Time__c: "02:00 PM - 03:00 PM",
-      Status__c: "Successful",
-      Doctor_Name: "Dr. Robert Chen",
-    },
-    // Added older past ticket for testing date search
-    {
-      Id: "a012x00000abc4",
-      Name: "OPD-2023-1102",
-      Hospital__r: { Name: "Community Health Center" },
-      Department__c: "Orthopedics",
-      Date__c: "2023-11-10",
-      Visit_Time__c: "11:00 AM - 12:00 PM",
-      Status__c: "Successful",
-      Doctor_Name: "Dr. S. Gupta",
-    },
-  ];
-};
 
 const token = localStorage.getItem("token");
 
@@ -113,8 +62,12 @@ const AppointmentCard = ({ appointment }) => {
           </h3>
 
           <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
-            <MapPin size={14} className="text-teal-600" />
-            <span>Out Patient Department (OPD)</span>
+            <Stethoscope size={14} className="text-teal-600" />
+            <span>
+              {appointment.Doctor__r?.Name
+                ? appointment.Doctor__r?.Name
+                : " Not Assigned"}
+            </span>
           </div>
         </div>
 
@@ -143,18 +96,28 @@ const AppointmentCard = ({ appointment }) => {
         </div>
 
         {/* Right: Actions */}
-        <div className="flex flex-col gap-2 min-w-[140px]">
-          <button className="flex items-center justify-center gap-2 w-full py-2 bg-teal-50 text-teal-700 font-bold text-sm rounded-lg hover:bg-teal-100 transition-colors border border-teal-100">
-            <FileText size={16} />
-            View Ticket
-          </button>
-          {appointment.Status__c === "Successful" && (
-            <button className="flex items-center justify-center gap-2 w-full py-2 bg-gray-50 text-gray-600 font-medium text-sm rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
-              <Download size={16} />
-              Prescription
+
+        {appointment.Status__c === "Pending" ? (
+          <div className="flex flex-col gap-2 min-w-[140px]">
+            <button className="flex items-center justify-center gap-2 w-full py-2   font-bold text-sm rounded-lg bg-amber-50 text-amber-700 hover:bg-amber-100 transition-colors border border-amber-100">
+              <Clock size={16} />
+              Ticket Pending
             </button>
-          )}
-        </div>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-2 min-w-[140px]">
+            <button className="flex items-center justify-center gap-2 w-full py-2 bg-teal-50 text-teal-700 font-bold text-sm rounded-lg hover:bg-teal-100 transition-colors border border-teal-100">
+              <FileText size={16} />
+              View Ticket
+            </button>
+            {appointment.Status__c === "Successful" && (
+              <button className="flex items-center justify-center gap-2 w-full py-2 bg-gray-50 text-gray-600 font-medium text-sm rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
+                <Download size={16} />
+                Prescription
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -214,10 +177,6 @@ export default function MyAppointments() {
               Manage your OPD tickets and hospital visits
             </p>
           </div>
-          {/* <button className="bg-teal-600 text-white px-5 py-2.5 rounded-xl font-medium hover:bg-teal-700 transition-colors shadow-lg shadow-teal-200 flex items-center gap-2">
-            <Building size={18} />
-            Book New Appointment
-          </button> */}
         </div>
       </div>
 

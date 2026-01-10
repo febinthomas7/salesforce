@@ -16,8 +16,9 @@ import {
   Camera,
   Upload,
 } from "lucide-react";
-
-const Edit = ({
+import { patientSettings } from "../../api/auth";
+const token = localStorage.getItem("token");
+const PatientSettings = ({
   // Allow passing initial data, or use defaults
   initialData = {
     name: "",
@@ -28,13 +29,13 @@ const Edit = ({
     bloodGroup: "",
     dob: "",
     gender: "",
-    photo: null, // New photo field
-    // Emergency Contact Fields
+    photo: null,
     ecName: "",
     ecRelation: "",
     ecPhone: "",
     ecEmail: "",
   },
+  onOpen = () => {},
   onClose = () => {},
   onSave = () => {},
 }) => {
@@ -60,19 +61,23 @@ const Edit = ({
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false);
+
+    try {
+      const res = await patientSettings(token, formData);
       onSave(formData);
+      setLoading(false);
+
       alert("Patient details updated successfully!");
-    }, 1000);
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex justify-center items-center p-4 font-sans text-gray-800">
+    <div className="fixed inset-0 z-50 flex justify-center items-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="bg-white w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden border border-gray-100 flex flex-col animate-in fade-in zoom-in duration-300">
         {/* --- Header with MedLock Gradient --- */}
         <div className="bg-gradient-to-r from-teal-600 to-cyan-600 px-8 py-6 flex justify-between items-center relative overflow-hidden">
@@ -151,7 +156,6 @@ const Edit = ({
                 Information
               </h3>
             </div>
-
             {/* Patient Name */}
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">
@@ -167,13 +171,12 @@ const Edit = ({
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
-                  required
+                  disabled
                   placeholder="Enter full name"
                   className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none transition-all shadow-sm"
                 />
               </div>
             </div>
-
             {/* Aadhaar No */}
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">
@@ -188,14 +191,13 @@ const Edit = ({
                   type="text"
                   name="aadhaar"
                   value={formData.aadhaar}
+                  disabled
                   onChange={handleChange}
-                  required
                   placeholder="12-digit Aadhaar number"
                   className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none transition-all shadow-sm"
                 />
               </div>
             </div>
-
             {/* Phone */}
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">
@@ -211,13 +213,12 @@ const Edit = ({
                   name="phone"
                   value={formData.phone}
                   onChange={handleChange}
-                  required
+                  disabled
                   placeholder="Mobile number"
                   className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none transition-all shadow-sm"
                 />
               </div>
             </div>
-
             {/* Email */}
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">
@@ -233,13 +234,11 @@ const Edit = ({
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  required
                   placeholder="email@example.com"
                   className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none transition-all shadow-sm"
                 />
               </div>
             </div>
-
             {/* Password */}
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">
@@ -255,13 +254,11 @@ const Edit = ({
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  required
                   placeholder="••••••••"
                   className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none transition-all shadow-sm"
                 />
               </div>
             </div>
-
             {/* Date of Birth */}
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">
@@ -281,7 +278,6 @@ const Edit = ({
                 />
               </div>
             </div>
-
             {/* Blood Group */}
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">
@@ -310,7 +306,6 @@ const Edit = ({
                 </select>
               </div>
             </div>
-
             {/* Gender */}
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">
@@ -334,14 +329,12 @@ const Edit = ({
                 </select>
               </div>
             </div>
-
             {/* SECTION 2: EMERGENCY CONTACT */}
             <div className="lg:col-span-2 pb-2 border-b border-gray-100 mb-2 mt-6 bg-red-50/50 p-3 rounded-xl border border-red-100/50">
               <h3 className="text-sm font-bold text-red-500 uppercase tracking-wider flex items-center gap-2">
                 <Contact size={16} /> Emergency Contact Information
               </h3>
             </div>
-
             {/* Emergency Name */}
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">
@@ -363,7 +356,6 @@ const Edit = ({
                 />
               </div>
             </div>
-
             {/* Relationship */}
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">
@@ -382,12 +374,16 @@ const Edit = ({
                   className="w-full pl-10 pr-4 py-3 bg-white border border-red-100 rounded-xl focus:ring-2 focus:ring-red-200 focus:border-red-300 outline-none transition-all text-gray-600 appearance-none shadow-sm"
                 >
                   <option value="">-- Select Relation --</option>
-                  <option value="Parent">Parent</option>
+                  <option value="Father">Father</option>
+                  <option value="Mother">Mother</option>
+                  <option value="Brother">Brother</option>
+                  <option value="Sister">Sister</option>
+                  <option value="Son">Son</option>
+                  <option value="Daughter">Daughter</option>
+                  <option value="Husband">Husband</option>
+                  <option value="Wife">Wife</option>
                   <option value="Spouse">Spouse</option>
-                  <option value="Sibling">Sibling</option>
-                  <option value="Child">Child</option>
-                  <option value="Friend">Friend</option>
-                  <option value="Other">Other</option>
+                  <option value="Partner">Partner</option>
                 </select>
               </div>
             </div>
@@ -413,7 +409,6 @@ const Edit = ({
                 />
               </div>
             </div>
-
             {/* Emergency Email */}
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">
@@ -465,4 +460,4 @@ const Edit = ({
   );
 };
 
-export default Edit;
+export default PatientSettings;

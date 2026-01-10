@@ -81,7 +81,7 @@ function Sidebar({ navigation, toggleSidebar, isCollapsed, name }) {
           </button>
         </div>
 
-        <div className="  border-b flex gap-2  border-gray-200 p-3">
+        <div className="  border-b flex gap-2  items-center border-gray-200 p-3">
           {" "}
           <div
             className={`bg-[#d1e8e5] p-3 w-fit  rounded-full border border-transparent`}
@@ -89,10 +89,9 @@ function Sidebar({ navigation, toggleSidebar, isCollapsed, name }) {
             <User className={`h-5 w-5 `} />
           </div>
           <div
-            className={`${userInfoVisibility} transition-opacity duration-300 flex flex-col`}
+            className={`${userInfoVisibility} transition-opacity duration-300 `}
           >
-            <span className="text-sm font-bold">Name</span>
-            <span className="text-sm">{name}</span>
+            <span className="text-lg font-bold">{name}</span>
           </div>
         </div>
         {/* Navigation */}

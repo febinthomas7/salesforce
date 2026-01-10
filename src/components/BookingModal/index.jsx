@@ -73,7 +73,6 @@ const BookingModal = ({ hospital, onClose }) => {
         formData.department,
         hospital.Name
       );
-      console.log("Create OPD Ticket Response:", res);
 
       // Generate "Official" ID
       const randomNum = Math.floor(100000 + Math.random() * 900000);
@@ -182,8 +181,8 @@ const BookingModal = ({ hospital, onClose }) => {
     )}`;
 
     return (
-      <div className="fixed inset-0 z-50 flex justify-center items-center p-4 bg-black/70 backdrop-blur-md animate-in fade-in duration-300 overflow-y-auto">
-        <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl relative my-auto">
+      <div className="fixed inset-0 z-50 flex justify-center items-center p-4 bg-black/70 backdrop-blur-md animate-in fade-in duration-300">
+        <div className="bg-white rounded-3xl w-full max-w-sm shadow-2xl relative">
           <button
             onClick={onClose}
             className="absolute top-4 right-4 text-white/80 hover:text-white z-50 bg-black/20 hover:bg-black/40 rounded-full p-1 transition-colors"
@@ -191,184 +190,56 @@ const BookingModal = ({ hospital, onClose }) => {
             <X className="w-5 h-5" />
           </button>
 
-          {/* Receipt Container for PDF Capture */}
-          <div
-            ref={receiptRef}
-            className="bg-white rounded-t-3xl overflow-hidden"
-          >
-            {/* Header */}
-            <div className="bg-[#0f766e] p-6 text-center relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(#ffffff33_1px,transparent_1px)] [background-size:16px_16px] opacity-30"></div>
-              <div className="relative z-10 flex flex-col items-center">
-                <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mb-3 border border-white/30 shadow-inner">
-                  <CheckCircle className="w-6 h-6 text-white" />
-                </div>
-                <h2 className="text-xl font-bold text-white tracking-wide">
-                  OPD Appointment
-                </h2>
-                <div className="flex items-center justify-center mt-2 bg-white/10 px-3 py-1 rounded-full border border-white/20">
-                  <Globe className="w-3 h-3 text-emerald-200 mr-1.5" />
-                  <span className="text-[10px] uppercase tracking-widest font-bold text-emerald-50">
-                    Verified & Confirmed
-                  </span>
-                </div>
+          {/* Header */}
+          <div className="bg-[#0f766e] p-8 text-center relative rounded-t-3xl">
+            <div className="absolute inset-0 bg-[radial-gradient(#ffffff33_1px,transparent_1px)] [background-size:16px_16px] opacity-30" />
+            <div className="relative z-10 flex flex-col items-center">
+              <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center mb-4 border border-white/30">
+                <CheckCircle className="w-7 h-7 text-white" />
               </div>
-            </div>
-
-            {/* Receipt Body */}
-            <div className="px-6 pt-6 pb-8 bg-gray-50">
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden relative">
-                {/* Decorative sawtooth top */}
-                <div className="absolute top-0 left-0 right-0 h-1 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMCAxMCIgcHJlc2VydmVBc3BlY3RSYXRpbz0ibm9uZSI+PHBhdGggZD0iTTAgMTAgTDEwIDAgTDIwIDEwIFoiIGZpbGw9IiNmOWZhZmIiIC8+PC9zdmc+')] bg-contain bg-repeat-x opacity-0"></div>
-
-                <div className="p-5 space-y-4">
-                  {/* Primary Booking ID */}
-                  <div className="text-center pb-4 border-b-2 border-dashed border-gray-100">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
-                      Appointment Reference ID
-                    </p>
-                    <p className="text-2xl font-mono font-bold text-gray-800 tracking-tight">
-                      {bookingDetails.id}
-                    </p>
-                  </div>
-
-                  {/* Details Grid */}
-                  <div className="grid grid-cols-2 gap-y-5 gap-x-4 text-sm">
-                    <div className="col-span-2 bg-teal-50/50 p-3 rounded-lg border border-teal-100/50">
-                      <p className="text-[10px] text-teal-600 font-bold uppercase mb-0.5">
-                        Hospital
-                      </p>
-                      <p className="font-bold text-teal-900 leading-snug">
-                        {bookingDetails.hospitalName}
-                      </p>
-                      <p className="text-[11px] text-teal-700/80 mt-0.5">
-                        {bookingDetails.hospitalLocation}
-                      </p>
-                    </div>
-
-                    <div>
-                      <p className="text-[10px] text-gray-400 font-bold uppercase mb-0.5">
-                        Date
-                      </p>
-                      <div className="flex items-center text-gray-800 font-bold">
-                        <Calendar className="w-3.5 h-3.5 mr-1.5 text-gray-400" />
-                        {bookingDetails.date}
-                      </div>
-                    </div>
-                    <div>
-                      <p className="text-[10px] text-gray-400 font-bold uppercase mb-0.5">
-                        Slot Time
-                      </p>
-                      <p className="font-bold text-teal-600 bg-teal-50 inline-block px-2 py-0.5 rounded text-xs border border-teal-100">
-                        {bookingDetails.slot}
-                      </p>
-                    </div>
-
-                    <div className="col-span-2">
-                      <p className="text-[10px] text-gray-400 font-bold uppercase mb-0.5">
-                        Department
-                      </p>
-                      <div className="flex items-center">
-                        <Stethoscope className="w-3.5 h-3.5 mr-1.5 text-gray-400" />
-                        <span className="font-semibold text-gray-800">
-                          {bookingDetails.department}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="col-span-2 pt-4 border-t border-gray-100">
-                      <div className="flex justify-between items-start">
-                        <div className="space-y-1">
-                          <p className="text-[10px] text-gray-400 font-bold uppercase mb-1">
-                            Patient Details
-                          </p>
-                          <p className="font-bold text-gray-900 text-base">
-                            {bookingDetails.patientName}
-                          </p>
-                          <div className="flex items-center gap-2 text-[11px] text-gray-500 font-medium">
-                            <span>
-                              {mockPatient.gender === "male"
-                                ? "Male"
-                                : "Female"}
-                            </span>
-                            <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
-                            <span>
-                              {new Date().getFullYear() -
-                                mockPatient.dateOfBirth.getFullYear()}{" "}
-                              Yrs
-                            </span>
-                            <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
-                            <span className="text-red-500 font-bold">
-                              {mockPatient.bloodGroup}
-                            </span>
-                          </div>
-                          <p className="text-[11px] text-gray-400 font-mono mt-0.5">
-                            UID: {bookingDetails.aadhaar}
-                          </p>
-                          <p className="text-[11px] text-gray-400 mt-0.5 flex items-center">
-                            <Phone className="w-3 h-3 mr-1" />
-                            {mockPatient.phone}
-                          </p>
-                        </div>
-                        <div className="bg-white p-1.5 border border-gray-200 rounded-xl shadow-sm">
-                          <img
-                            src={qrUrl}
-                            alt="Booking QR"
-                            className="w-20 h-20 mix-blend-multiply"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <h2 className="text-2xl font-extrabold text-white">
+                Ticket Booked
+              </h2>
+              <p className="text-sm text-emerald-100 mt-1">
+                Your booking was successful
+              </p>
             </div>
           </div>
 
-          {/* Actions & Footer */}
-          <div className="bg-gray-50 px-6 pb-6 pt-2 rounded-b-3xl">
-            <div className="bg-amber-50 border border-amber-100 rounded-lg p-3 mb-6 flex items-start shadow-sm">
-              <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 mr-2 flex-shrink-0" />
-              <p className="text-xs text-amber-800 leading-relaxed font-medium">
-                Report to <strong>Fast-Track Counter 3</strong> at least 20 mins
-                early.
-              </p>
+          {/* Body */}
+          <div className="px-6 py-8 text-center bg-gray-50 rounded-b-3xl">
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-4">
+              <div>
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">
+                  Ticket ID
+                </p>
+                <p className="text-xl font-mono font-bold text-gray-800">
+                  {bookingDetails.id}
+                </p>
+              </div>
+
+              <div className="pt-4 border-t border-dashed border-gray-200">
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">
+                  Patient Name
+                </p>
+                <p className="text-lg font-semibold text-gray-900">
+                  {bookingDetails.patientName}
+                </p>
+              </div>
+
+              <div className="pt-4">
+                <span className="inline-flex items-center px-4 py-1.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-100">
+                  ✔ Confirmed
+                </span>
+              </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={handleShare}
-                disabled={isSharing}
-                className="flex items-center justify-center py-3.5 rounded-xl border border-gray-200 bg-white text-gray-700 font-bold text-sm hover:bg-gray-50 hover:border-gray-300 hover:shadow-md transition-all active:scale-95"
-              >
-                {copied ? (
-                  <>
-                    <Check className="w-4 h-4 mr-2 text-green-600" /> Copied!
-                  </>
-                ) : (
-                  <>
-                    {shareSupported ? (
-                      <Share2 className="w-4 h-4 mr-2" />
-                    ) : (
-                      <Copy className="w-4 h-4 mr-2" />
-                    )}
-                    {shareSupported ? "Share" : "Copy Info"}
-                  </>
-                )}
-              </button>
-              <button
-                onClick={handleDownloadPDF}
-                disabled={isDownloading}
-                className="flex items-center justify-center py-3.5 rounded-xl bg-[#0f766e] text-white font-bold text-sm hover:bg-[#115e59] hover:shadow-lg hover:shadow-teal-900/20 transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
-              >
-                {isDownloading ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <Download className="w-4 h-4 mr-2" />
-                )}
-                {isDownloading ? "Saving..." : "Download PDF"}
-              </button>
-            </div>
+            <button
+              onClick={onClose}
+              className="mt-6 w-full py-3 rounded-xl bg-[#0f766e] text-white font-bold hover:bg-[#115e59] transition-all active:scale-95"
+            >
+              Done
+            </button>
           </div>
         </div>
       </div>

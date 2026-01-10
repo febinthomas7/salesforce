@@ -14,9 +14,6 @@ const Layout = ({ children, navigation, name }) => {
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
   };
-  const toggleTheme = () => {
-    setTheme(theme === "theme-dark" ? "" : "theme-dark");
-  };
 
   // Apply theme globally
   useEffect(() => {

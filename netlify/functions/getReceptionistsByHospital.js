@@ -4,14 +4,14 @@ import { getCache, setCache } from "./cache";
 
 export async function handler(event) {
   try {
-    // 1️⃣ AUTH HEADER CHECK
+    // 1️⃣ AUTH CHECK
     const authHeader =
       event.headers.authorization || event.headers.Authorization;
 
-    if (!authHeader?.startsWith("Bearer ")) {
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return {
         statusCode: 401,
-        body: JSON.stringify({ error: "Authorization token missing" }),
+        body: JSON.stringify({ error: "Invalid authorization format" }),
       };
     }
 
@@ -28,19 +28,19 @@ export async function handler(event) {
       };
     }
 
-    // 3️⃣ ENSURE PATIENT TOKEN
-    if (!decoded?.id) {
+    // 3️⃣ ENSURE HOSPITAL TOKEN
+    if (!decoded.hospital_id) {
       return {
         statusCode: 403,
-        body: JSON.stringify({ error: "Patient access only" }),
+        body: JSON.stringify({ error: "Hospital access only" }),
       };
     }
 
-    // 4️⃣ PAGINATION
-    const limit = Number(event.queryStringParameters?.limit || 20);
-    const offset = Number(event.queryStringParameters?.offset || 0);
+    const hospitalId = decoded.hospital_id;
 
-    const cacheKey = `patient-appointment-booking-${decoded.id}`;
+    // ✅ CACHE CHECK
+    const cacheKey = `hospital-receptionists-${hospitalId}`;
+
     const cachedData = getCache(cacheKey);
 
     if (cachedData) {
@@ -50,25 +50,23 @@ export async function handler(event) {
       };
     }
 
-    // 5️⃣ SALESFORCE TOKEN (CACHED INTERNALLY)
+    // 4️⃣ SALESFORCE ACCESS TOKEN
     const { access_token, instance_url } = await getSfAccessToken();
 
-    // 6️⃣ SAFE + PAGINATED SOQL
+    // 5️⃣ QUERY ALL RECEPTIONISTS UNDER HOSPITAL
     const soql = `
       SELECT
         Id,
         Name,
-        Date__c,
-        Department__c,
-        Status__c,
-        Visit_Time__c,
-        Hospital__r.Name,
-        Doctor__r.Name
-      FROM Appointment__c
-      WHERE Patient__c = '${decoded.id.replace(/'/g, "\\'")}'
+        Receptionist_Id__c,
+        Phone_No__c,
+        Hospital__c,
+        Date_of_Birth__c,
+        Adhaar_No__c,
+        CreatedDate
+      FROM Receptionist__c
+      WHERE Hospital__c='${hospitalId}'
       ORDER BY CreatedDate DESC
-      LIMIT ${limit}
-      OFFSET ${offset}
     `;
 
     const res = await fetch(
@@ -85,21 +83,18 @@ export async function handler(event) {
     const response = {
       status: true,
       count: data.totalSize,
-      appointments: data.records || [],
+      receptionists: data.records || [],
     };
 
-    // 🔥 Cache response
+    // ✅ STORE IN CACHE (5 minutes)
     setCache(cacheKey, response);
 
     return {
       statusCode: 200,
       body: JSON.stringify(response),
-      headers: {
-        "Cache-Control": "public, max-age=60",
-      },
     };
   } catch (err) {
-    console.error("Get patient reports error:", err);
+    console.error("Get receptionists error:", err);
     return {
       statusCode: 500,
       body: JSON.stringify({ error: err.message }),

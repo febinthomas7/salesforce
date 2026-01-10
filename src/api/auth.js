@@ -25,6 +25,16 @@ export const registerDoctor = async (token, userData) => {
   return res.data;
 };
 
+export const registerReceptionist = async (token, userData) => {
+  const res = await api.post("/.netlify/functions/registerReceptionist", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    data: userData,
+  });
+  return res.data;
+};
+
 export const registerHospital = async (userData) => {
   const res = await api.post("/.netlify/functions/hospitalResgister", userData);
   return res.data;
@@ -46,6 +56,14 @@ export const createReport = async (token, userData) => {
 
 export const getDoctorsByHospital = async (token) => {
   const res = await api.get("/.netlify/functions/getDoctorsByHospital", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return res.data;
+};
+export const getReceptionistsByHospital = async (token) => {
+  const res = await api.get("/.netlify/functions/getReceptionistsByHospital", {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -158,5 +176,24 @@ export const updateAppointmentsByReceptionist = async (token, userData) => {
       data: userData,
     }
   );
+  return res.data;
+};
+
+export const patientSettings = async (token, userData) => {
+  const res = await api.post("/.netlify/functions/patientSettings", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    data: userData,
+  });
+  return res.data;
+};
+
+export const getPatient = async (token) => {
+  const res = await api.get("/.netlify/functions/getPatient", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
   return res.data;
 };
